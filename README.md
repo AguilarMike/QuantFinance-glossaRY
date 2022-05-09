@@ -1,1 +1,1 @@
-"# QuantFinance-glossaRY" 
+"# QuantFinance-glossaRy" 
