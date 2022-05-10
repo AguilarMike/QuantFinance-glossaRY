@@ -1,0 +1,26 @@
+---
+title: "Regression Plots(V2)"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Regression Plots(V2) -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+reg1<-lm(DAX~CAC,Returns) #Run Regression
+#par(mfrow=c(3,2))
+plot(reg1,which=c(1))
+plot(reg1,which=c(2))
+plot(reg1,which=c(3))
+plot(reg1,which=c(4))
+plot(reg1,which=c(5))
+plot(reg1,which=c(6))
+```

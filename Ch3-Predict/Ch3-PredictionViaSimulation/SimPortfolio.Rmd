@@ -1,0 +1,37 @@
+---
+title: "Simulate Portofolio Correlated Return"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+### Sim. Port. Correlated Ret.
+Simulate normal returns calibrated to MSFT & GE daily returns.
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library("tidyquant") 
+Tickers = c('MSFT','GE') # asset tickers
+start_date = '2017-01-01' # data start date
+end_date = '2021-03-01' # data end date
+data_src = 'yahoo' # data source
+getSymbols(Tickers,from = start_date,to = end_date, src=data_src)
+library(PerformanceAnalytics)
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-Tickers
+Means<-as.numeric(lapply(Returns,FUN=mean))
+V<-cov(Returns)
+C<-cor(Returns)
+TargetMean=Means[1]+Means[2]
+TargetMean
+TargetVariance=V[1,1]+V[2,2]+2*C[1,2]*sqrt(V[1,1])*sqrt(V[2,2])
+sqrt(TargetVariance)
+T = 10000
+Portfolio<-rnorm(T,mean=TargetMean,sd=sqrt(TargetVariance))
+plot(Portfolio,type="l")
+mean(Portfolio)
+sd(Portfolio)
+```

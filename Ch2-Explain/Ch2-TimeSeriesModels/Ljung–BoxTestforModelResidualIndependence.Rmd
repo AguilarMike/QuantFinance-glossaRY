@@ -1,0 +1,33 @@
+---
+title: "Ljung–Box Test for Model Residual Independence"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP <- Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+GDPGrowth <- diff(log(GDP)) # calculate log growth rate
+GDPGrowth <- na.omit(GDPGrowth) # get rid of the NAs
+
+library(forecast)
+fit <- auto.arima(GDPGrowth)
+fit
+```
+
+
+```{r}
+### Compute the Ljung–Box test statistic for examining the null hypothesis of independence in a given time series. 
+Box.test(residuals(fit),lag=4,type="Ljung")
+# Ho: No autocorrelation
+#Interpret: Given the high p-value, we fail to reject the null of no persistence through 4 lags. 
+```
+

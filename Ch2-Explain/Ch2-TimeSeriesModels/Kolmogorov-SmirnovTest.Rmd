@@ -1,0 +1,32 @@
+---
+title: "Kolmogorov-Smirnov Test"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP <- Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+GDPGrowth <- diff(log(GDP)) # calculate log growth rate
+GDPGrowth <- na.omit(GDPGrowth) # get rid of the NAs
+
+library(forecast)
+fit <- auto.arima(GDPGrowth)
+fit
+```
+
+
+
+```{r}
+### Let's also test the null of normal distribution via a KS test
+ks.test(residuals(fit),pnorm)
+#Interpret: Given the low pvalue, we reject the null, implying that the residuals aren't normally distributed
+```

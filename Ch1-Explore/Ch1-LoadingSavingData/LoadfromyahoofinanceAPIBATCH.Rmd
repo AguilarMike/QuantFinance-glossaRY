@@ -1,0 +1,44 @@
+---
+title: "Batch Grab Symbols"
+author: "Mike Aguilar"
+date: '2022-05-03'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load multiple symbols quickly. 
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+# Github (dev version)
+# https://github.com/msperlin/yfR
+#devtools::install_github('msperlin/yfR') #package installation (until CRAN available)
+library(yfR)
+library(ggplot2)
+
+library(rvest) # crawl data from html
+url <- "https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average"
+DOWJIA <- url %>%
+  xml2::read_html() %>%
+  html_nodes(xpath='//*[@id="constituents"]') %>%
+  html_table()
+DOWJIA <- DOWJIA[[1]]
+DOWJIA_Tickers <- DOWJIA$Symbol
+
+my_tickers<-DOWJIA_Tickers
+first_date <- '2000-01-01'
+last_date <- '2022-01-01'
+
+RawData <- yf_get(tickers = my_tickers, 
+                  first_date = first_date, 
+                  last_date = last_date,
+                  type_return = "arit"
+                  )
+WideRawData<-yf_convert_to_wide(RawData)
+Ret<-WideRawData$ret_adjusted_prices
+na.omit(Ret)
+
+```

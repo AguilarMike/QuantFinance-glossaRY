@@ -1,0 +1,25 @@
+---
+title: "What is the chance of getting a return greater than .01?"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+<!-- ### What is the chance of getting a return greater than .01?  -->
+<!-- Let's calibrate the mean and variance of Ford.  -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+library(corrplot)
+Tickers<-'F'
+startd = "2015-01-01"
+endd = "2021-04-30"
+TickersReturned<-getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+F$Returns = F$F.Adjusted/lag.xts(F$F.Adjusted,k=1)-1
+mu = mean(na.omit(F$Returns))
+sigma = sd(na.omit(F$Returns))
+x=.01
+ProbX = 1-pnorm(x,mean = mu, sd = sigma)
+print(ProbX)
+```

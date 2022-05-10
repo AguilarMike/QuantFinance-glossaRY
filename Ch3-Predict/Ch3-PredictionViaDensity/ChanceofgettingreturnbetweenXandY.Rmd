@@ -1,0 +1,29 @@
+---
+title: "What is the chance of getting a return between .01 and .05?"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+<!-- ### What is the chance of getting a return between .01 and .05?  -->
+<!-- Let's calibrate the mean and variance of Ford.  -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+library(corrplot)
+Tickers<-'F'
+startd = "2015-01-01"
+endd = "2021-04-30"
+TickersReturned<-getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+F$Returns = F$F.Adjusted/lag.xts(F$F.Adjusted,k=1)-1
+mu = mean(na.omit(F$Returns))
+sigma = sd(na.omit(F$Returns))
+x=.01
+y = .05
+ProbX = pnorm(x,mean = mu, sd = sigma)
+ProbY = pnorm(y,mean = mu, sd = sigma)
+Prob = ProbY - ProbX
+print(Prob)
+```
+

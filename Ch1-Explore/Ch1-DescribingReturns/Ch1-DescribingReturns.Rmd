@@ -1,0 +1,220 @@
+---
+title: "Describing Returns"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+<!-- ## Describing Returns -->
+
+### Mean of Returns
+```{r child = 'MeanofReturns.Rmd'}
+```
+
+
+### Var.& Std.Dev. of Returns
+```{r child = 'Var&StdDevofReturns.Rmd'}
+```
+
+
+### Skew & Kurt. of Returns
+```{r child = 'SkewnessandKurtosisofReturns.Rmd'}
+```
+
+
+### Min/Max of Returns
+```{r child = 'MinMaxofReturns.Rmd'}
+```
+
+
+### Sample Statistics
+```{r child = 'SampleStatistics.Rmd'}
+```
+ 
+
+### Histogram
+```{r child = 'Histogram.Rmd'}
+```
+
+
+### Hist. with Density Overlay
+```{r child = 'HistogramwithDensityOverlay.Rmd'}
+```
+
+
+### Histogram with VaR
+```{r child = 'HistogramwithVaR.Rmd'}
+```
+
+
+
+### Hist. with Risk Boundaries
+```{r child = 'HistogramwithRiskBoundaries.Rmd'}
+```
+
+
+### Relative Freq. Hist.
+```{r child = 'RelativeFrequencyHistogram.Rmd'}
+```
+
+
+### Order Rank
+We can rank returns from big to small. The highest (or most favorable) return rank is 1 and the lowest (or least favorable) return rank is 252 in our example.
+```{r child = 'OrderRank.Rmd'}
+```
+
+
+### Quantiles Historical Ret.
+Quantile determines how many values in a distribution are above or below a certain limit, so it is important for performance analysis.
+```{r child = 'QuantilesofHistoricalReturns.Rmd'}
+```
+
+
+### Find Date of Quantile
+What is the date of the 80th percentile observation?
+```{r child = 'FindDateofSpecificQuantile.Rmd'}
+```
+
+
+### Percentile of Obs. on Date
+What is the percentile of the observation on Mar.10, 2020?
+```{r child = 'PercentileofObsonSpecificDate.Rmd'}
+```
+
+
+### Visualize Outliers
+This is a simple heuristic, not a formal rule.  Your initial EDA can control the threshold you choose to set. 
+```{r child = 'VisualizeOutliers.Rmd'}
+```
+
+
+### Boxplot of Outliers
+The observations in red are potential outliers since they lie >75th quantile and less than 25th quantile. 
+```{r child = 'BoxplotofOutliers.Rmd'}
+```
+
+
+### Compute Z Scores
+```{r child = 'ComputeZScores.Rmd'}
+```
+
+### DeMean 
+```{r child = 'DeMean.Rmd'}
+```
+
+### ReScale 
+```{r child = 'ReScale.Rmd'}
+```
+
+### Compute IQR
+```{r child = 'ComputeIQR.Rmd'}
+```
+
+
+### Drop Outliers
+```{r child = 'DropOutliers.Rmd'}
+```
+
+
+### Replace Outliers with Mean
+```{r child = 'ReplaceOutlierswithMean.Rmd'}
+```
+
+
+### Replace Outliers with Quant.
+```{r child = 'ReplaceOutlierswithExtremeQuantiles.Rmd'}
+```
+Notice that the min and max are equal to Q1 and Q3, respectively, confirming that we've trimmed appropriately. 
+
+
+### Rolling Mean Return
+```{r child = 'RollingMeanReturnover250-days.Rmd'}
+```
+
+
+### Rolling Std of Returns
+```{r child = 'Rolling250-dayStdofReturns.Rmd'}
+```
+
+
+### Rolling Skewness of Returns
+```{r child = 'Rolling250-daySkewofReturns.Rmd'}
+```
+
+
+### Rolling Kurtosis of Returns
+```{r child = 'Rolling250-dayKurtosisofReturns.Rmd'}
+```
+
+### Rolling Total Return
+```{r child = 'Rolling250-dayTotalReturn.Rmd'}
+```
+
+### Create Calendar Dummies
+```{r child = 'CreateCalendarDummy.Rmd'}
+```
+
+### Create Dummies by Value
+```{r child = 'CreateValueDummy.Rmd'}
+```
+
+### Test Equal Mean Returns
+```{r child = 'EqualMeans.Rmd'}
+```
+
+### Test Mean Ret. One-Sided
+```{r child = 'EqualMeansOneSided.Rmd'}
+```
+
+### Test Equal Variance Returns
+```{r child = 'EqualVariance.Rmd'}
+```
+
+### Return Correlation
+```{r child = 'ReturnCorrelation.Rmd'}
+```
+
+
+### Visualize Correlations (v1)
+```{r child = 'VisualizeCorrelations.Rmd'}
+```
+
+
+### Visualize Correlations (v2)
+The `corrplot()` function from package \textbf{corrplot} allows to draw other fancy correlation graphs(go for this notebook for more examples)
+```{r child = 'VisualizeCorrelations(V2).Rmd'}
+```
+
+
+### Rolling Correlations
+```{r child = 'RollingCorrelations.Rmd'}
+```
+
+
+### Covariance of Returns
+```{r child = 'CovarianceofReturns.Rmd'}
+```
+
+
+
+<!-- ### PDF for Multiple Assets -->
+
+
+<!-- ### CDF for Multiple Assets -->
+
+
+

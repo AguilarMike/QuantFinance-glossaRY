@@ -1,0 +1,31 @@
+---
+title: "Load from FRED"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Load from FRED -->
+1. Obtain an API key from FRED <https://fred.stlouisfed.org/docs/api/api_key.html>
+2. Save that key in a csv file in the same directory as your code file. It should look like this
+
+```{r echo=FALSE, out.width="25%", fig.align='left'}
+knitr::include_graphics("KEY.png")
+```
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(fredr)
+fred_api_key<-read.csv("../data/fredkey.csv",stringsAsFactors=FALSE)
+fredr_set_key(fred_api_key$Key)
+mydata<-fredr(
+  series_id = "UNRATE",
+  frequency = "m", # monthly
+  observation_start = as.Date("1990-01-01"),
+  observation_end = as.Date("2000-01-01"),
+  units = "pc1" # % Delta 1yr ago
+)
+```
+

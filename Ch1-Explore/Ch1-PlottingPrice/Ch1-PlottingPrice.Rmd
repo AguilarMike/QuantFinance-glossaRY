@@ -1,0 +1,54 @@
+---
+title: "Plotting Prices"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+
+<!-- ## Plotting Prices -->
+### Price Chart
+```{r child = 'PriceChart.Rmd'}
+```
+
+
+### Candlestick Chart
+```{r child = 'CandlestickChart.Rmd'}
+```
+
+
+### Price Chart w/ Volume & Bands
+```{r child = 'PriceChartwithVolumeandBands.Rmd'}
+```
+
+
+### Price Chart with Multiple Tickers
+can probably use the quandl api to make this easier
+```{r child = 'PriceChartwithMultipleTickers.Rmd'}
+```
+
+
+### Indexed Price Chart
+```{r child = 'IndexedPriceChart.Rmd'}
+```
+
+
+### Multi-Asset Indexed Price Chart
+```{r child = 'Multi-AssetIndexedPriceChart.Rmd'}
+```
+
+
+### Price Chart with Drawdowns
+```{r child = 'PriceChartwithDrawdowns.Rmd'}
+```
+
+### Recession Shading
+```{r child = 'RecessionShading.Rmd'}
+```
+

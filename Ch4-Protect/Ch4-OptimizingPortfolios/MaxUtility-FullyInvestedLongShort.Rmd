@@ -1,0 +1,82 @@
+---
+title: "Max Utility - Fully Invested & Long/Short"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+```{r}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+### Load Data
+library(quantmod)
+startd = "2015-01-01"
+endd = "2021-04-30"
+Tickers = c("IBM","GE","F","MSFT")
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+### Compute Returns
+Return = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Return = na.omit(Return[-1,])
+colnames(Return)<-Tickers
+
+
+### Construct Portfolio
+# Create the portfolio specification
+library(PortfolioAnalytics)
+init.portf <-portfolio.spec(assets = colnames(Return))
+
+# Add a full investment constraint such that the weights sum to 1
+init.portf <- add.constraint(portfolio=init.portf, type="full_investment")
+
+
+# Add risk and return objective(we need them to calculate the quadratic utility
+init.portf <- add.objective(portfolio=init.portf, type="return", name = "mean")
+init.portf <- add.objective(portfolio=init.portf, type="risk", name = "var",risk_aversion=.25)
+
+### Solve Portfolio: Maximize Quadratic Utility
+# The default action if “mean” and “StdDev” are specified as objectives with optimize_method="ROI" is to maximize quadratic utility.
+library(ROI)
+opt.MaxQU <- optimize.portfolio(R=Return, 
+                                portfolio=init.portf, 
+                                optimize_method="ROI", 
+                                trace=TRUE)
+# Warning: Inf or -Inf values detected in box constraints, maximum return objectives must have finite box constraint values. 
+
+
+summary(opt.MaxQU) #The optimization summary should be read carefully since not every constraint is guaranteed to be satisfied
+
+### Visualize result
+library(PerformanceAnalytics)
+# Optimal weights
+OptWeight = extractWeights(opt.MaxQU)
+sum(OptWeight)
+chart.Weights(opt.MaxQU)
+
+# Sharpe ratio
+SharpeRatio(Return, weights = OptWeight, FUN = "StdDev")
+
+# Portfolio return
+PortReturn <- Return.portfolio(R = Return, 
+                              weights = OptWeight, 
+                              geometric = FALSE) #use arithmetic(FALSE) to aggregate returns
+chart.TimeSeries(PortReturn)
+```
+
+
+

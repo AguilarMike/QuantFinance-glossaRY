@@ -1,0 +1,86 @@
+---
+title: "Optimal Portfolios"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    mode: selfcontained
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 3
+---
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+
+
+### Min Variance-Long Only
+Minimum Variance, Subject to Target Return, Fully Invested, Long Only 
+```{r child = 'MinVariance-TargetReturnFullyInvestedLongOnly.Rmd'}
+```
+
+### Min Variance-Long/Short
+```{r child = 'MinVariance-TargetReturnFullyInvestedLongShort.Rmd'}
+```
+
+
+### Max Sharpe-LongOnly
+```{r child = 'MaxSR-LongOnly.Rmd'}
+```
+
+### Max Sharpe-Long/Short
+```{r child = 'MaxSR-LongShort.Rmd'}
+```
+
+
+### Max Sharpe-Weight Bounds
+```{r child = 'MaxSR-BoxConstraint.Rmd'}
+```
+
+
+### Max Sharpe-Limit #Positions
+```{r child = 'MaxSR-NumberPositions.Rmd'}
+```
+
+
+### Max Sharpe-FactorExposure
+```{r child = 'MaxSharpe-FactorExposureConstraint.Rmd'}
+```
+
+### Max Sharpe-Transaction
+```{r child = "MaxSharpe-TransactionCostConstraint.Rmd"}
+```
+
+
+### Max Sharpe-Reoptimizing 
+```{r child = 'MaxSharpe-FullyInvestedLongShortRebal.Rmd'}
+```
+
+
+### Max Utility
+```{r child = 'MaxUtility-FullyInvestedLongShort.Rmd'}
+```
+
+
+### Efficient Frontier 
+```{r child = 'EfficientFrontier.Rmd'}
+```
+
+### Fwd Looking Min Variance
+```{r child = 'ForwardLookingOptimMinVar.Rmd'}
+```
+
+### Fwd Looking Max Sharpe
+```{r child = 'ForwardLookingOptimMaxSR.Rmd'}
+```
+

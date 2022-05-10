@@ -1,0 +1,56 @@
+---
+title: "Prediction via Simulation"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    mode: selfcontained
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 3
+
+---
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+
+### Simulate Returns
+```{r child = 'SimNormReturns.Rmd'}
+```
+
+### Simulate Returns with Seed
+```{r child = 'SimNormReturnsSeed.Rmd'}
+```
+
+
+### Simulate Multiple Return Paths
+```{r child = 'SimMultipleNormReturnPaths.Rmd'}
+```
+
+
+### Simulate Correlated Returns
+```{r child = 'SimMultivariateNormal.Rmd'}
+```
+
+
+### Simulate Portofolio Correlated Return
+```{r child = 'SimPortfolio.Rmd'}
+```
+
+
+### Geometric Random Walk
+```{r child = 'Geometric Random Walk.Rmd'}
+```
+
+
+
+
+
+
+
+
+
+
+

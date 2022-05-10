@@ -1,0 +1,27 @@
+---
+title: "Augmented Dickey-Fuller(ADF) Test for Unit Root"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP = Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+
+# ADF Test for unit root, which is a common type of non-stationary
+library(tseries)
+adf.test(GDP, alternative = "stationary") 
+# H0: Not stationary
+# Interpret: High p-value -->fail to reject the null hypothesis of non-stationary
+```
+
+
+

@@ -1,0 +1,14 @@
+---
+title: "Load from CSV"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+<!-- ### Loading from CSV -->
+This assumes that you have a folder called "data" in the directory where your code file is located. 
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+mydata<-read.csv("../data/AAPL.csv")
+```

@@ -1,0 +1,21 @@
+---
+title: "Test Equal Mean Returns"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Test Equal Mean Returns -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+t.test(Returns$DAX,Returns$CAC,var.equal=TRUE)
+t.test(Returns$DAX,Returns$CAC) # If variances unequal
+
+```

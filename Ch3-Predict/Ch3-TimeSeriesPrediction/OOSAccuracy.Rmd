@@ -1,0 +1,66 @@
+---
+title: "OOS Forecast Accuracy"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+```{r}
+### Housekeeping 
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+```
+
+
+
+```{r}
+
+library(quantmod)
+startd<-"1990-01-01"
+endd<-"2020-12-31"
+Ticker = "GDPC1"
+getSymbols(Ticker,from=startd,to=endd,src='FRED')
+Growth<-diff(log(GDPC1))
+Growth<-na.omit(Growth)
+colnames(Growth)=c("Growth")
+# Split Data
+Train <-Growth["/2014"]
+Test<-Growth["2015/"]
+```
+
+
+```{r}
+### Build Models
+library(forecast)
+fit <- auto.arima(Train)  
+
+
+### Make One-step Ahead Forecast by Feeding Test Data to Model
+# Note that we included training data because the model needs historical data (Train) to make the first few predictions
+fit.out <- Arima(Growth, model = fit) 
+# Extra one-step ahead forecasts over the test set
+forecast.out <- subset(fitted(fit.out), start=length(Train)+1) 
+data.frame(OneStepForecast=forecast.out, row.names=as.yearqtr(index(Test)))
+```
+
+```{r}
+### Calculate Forecast Accuracy
+# Train Sample
+accuracy(fit)
+
+# Test Sample
+accuracy(forecast.out, Test) # the first input is the fitted/forecast value
+```
+
+

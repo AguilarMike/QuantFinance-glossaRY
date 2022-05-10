@@ -1,0 +1,43 @@
+---
+title: "Logit Marginal Effects"
+author: "Mike Aguilar"
+date: "22Apr2022"
+output: html_document
+---
+
+
+Use a logistic to model recessions with 10yr-2yr Treasury Spread. Note: This is a simplified version of the typical models used. 
+```{r,warning=FALSE}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(fredr)
+library(xts)
+fred_api_key<-read.csv("../data/fredkey.csv",stringsAsFactors=FALSE)
+fredr_set_key(fred_api_key$Key)
+TenTwo<-fredr(
+  series_id = "T10Y2Y",
+  frequency = "m", # monthly
+  observation_start = as.Date("1977-01-01"),
+  observation_end = as.Date("2022-01-01"),
+  units = "lin"
+)
+Recession<-fredr(
+  series_id = "USREC",
+  frequency = "m", # monthly
+  observation_start = as.Date("1977-01-01"),
+  observation_end = as.Date("2022-01-01"),
+  units = "lin"
+)
+MyData<-data.frame(TenTwo=TenTwo$value,Recession=Recession$value,row.names = Recession$date)
+MyData<-as.xts(MyData)
+MyData$TenTwoLag4 <- lag.xts(MyData$TenTwo,k=4)
+MyData<-na.omit(MyData)
+logit1<-glm(Recession~TenTwoLag4,data=MyData,family = 'binomial')
+newdata<-data.frame(TenTwoLag4=tail(TenTwo$value,n=1)) #last observed value of 10-2yr
+PRED<-predict(logit1, newdata = newdata, type = 'response')
+coeffs<-coef(logit1)
+TenTwoMean=mean(TenTwo$value)
+MgrlEffectTenTwo =(exp(-TenTwoMean)/(1+exp(-TenTwoMean))^2)*coeffs[2]
+print(paste('For every 1 percentage point (i.e. 100bps) increase in the 10-2yr spread, the probability of a recession changes by ', MgrlEffectTenTwo,' %'))
+
+```

@@ -1,0 +1,24 @@
+---
+title: "Test Regression Parameters"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Test Regression Parameters -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+reg1<-lm(DAX~CAC,Returns) #Run Regression
+print(summary(reg1))
+h0=0 # set to your hypotehsized value
+tstat = (summary(reg1)$coefficients[1,1]-h0)/summary(reg1)$coefficients[1,2]
+pvalue = pt(q=abs(tstat),df = reg1$df,lower.tail = FALSE)*2
+pvalue
+```

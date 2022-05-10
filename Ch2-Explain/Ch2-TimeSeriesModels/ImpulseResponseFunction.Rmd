@@ -1,0 +1,44 @@
+---
+title: "Impulse Response Function(IRF)"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd <-"1980-04-01"  
+endd <-"2012-12-31"
+
+TB3MS <- Quandl("FRED/TB3MS",start_date=startd, end_date=endd,type="ts")
+TB10YS <- Quandl("FRED/GS10",start_date=startd, end_date=endd,type="ts")
+GDP <- Quandl("FRED/GDPC96",start_date=startd, end_date=endd,type="ts", transform="rdiff")# note this is simple return, we need log return since we want to run regression
+
+TSpread <- TB10YS - TB3MS 
+TSpread <- aggregate(TSpread,nfrequency=4,FUN=mean)# aggregate monthly data to quarterly(averages)
+GDPGrowth = 400*log(1+GDP)# annual log growth rate%
+
+
+### VAR Model
+library(vars)
+VAR_Data<-na.omit(ts.union(GDPGrowth, TSpread)) #set up data for estimation
+VARselect(VAR_Data, lag.max = 12, type = "const")$selection #obtain the best lag period
+VAR_fit<-VAR(y = VAR_Data, p = 2)
+summary(VAR_fit)
+
+### IRF
+# Consider the response of GDP growth to term spread shock
+IRF_GDP<- irf(VAR_fit, impulse = "TSpread", response = "GDPGrowth", n.ahead = 20, boot = TRUE)
+plot(IRF_GDP, ylab = "GDP growth", main = "Shock from Term spread")
+#Interpret: The IRF estimates the effects from one unit shock to the error in the TSpread on future value of GDPGrowth. For example, IRF_GDP[21]=-0.025 implies that the influence comes from one unit shock to the error in the TSpread will cause 20 step-ahead GDPGrowth decrease by 0.025. Note that a positive shock to Term spread has an immediate negative impact on GDP growth, with growth falling to -0.432. By about the 5qtr growth turns positive again and by the 20th quarter the impact of the shock is largely dissipated.  
+
+
+# Consider the response of term spread to GDP growth shock
+IRF_TSpread <- irf(VAR_fit, impulse="GDPGrowth", response="TSpread", n.ahead = 20, boot = TRUE)
+plot(IRF_TSpread, ylab = "Term spread", main = "Shock from GDP growth")
+```

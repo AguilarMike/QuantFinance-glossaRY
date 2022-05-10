@@ -1,0 +1,63 @@
+---
+title: "Prediction via Density"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    mode: selfcontained
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 3
+
+---
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+<!-- ## Prediction via Density  -->
+<!-- If we know the distribution, then we can "predict" what might happen next.  -->
+### Prob(Ret<.01)
+What is the chance of getting a return smaller than .01?  Let's calibrate the mean and variance of Ford. 
+```{r child = 'ChanceofgettingreturnsmallerthanY.Rmd'}
+```
+
+
+### Prob(Ret>.01)
+What is the chance of getting a return greater than .01?  Let's calibrate the mean and variance of Ford. 
+```{r child = 'ChanceofgettingreturngreaterthanY.Rmd'}
+```
+
+
+### Prob(.01<Ret<.05)
+What is the chance of getting a return between .01 and .05? Let's calibrate the mean and variance of Ford.
+```{r child = 'ChanceofgettingreturnbetweenXandY.Rmd'}
+```
+
+
+### Prob(Ret<?)=70%
+If there is a 70% chance of getting a return less than y. What is y? 
+Let's calibrate the mean and variance of Ford. 
+```{r child = '70%chanceofgettingreturnsmallerthanY.Rmd'}
+```
+
+
+### Prob(Ret>?)=70%
+If there is a 70% chance of getting a return greater than y. What is y?  Let's calibrate the mean and variance of Ford. 
+```{r child = '70%chanceofgettingreturngreaterthanY.Rmd'}
+```
+
+
+### Prob(-.01<Ret<Y)=25%
+If we have a 25% prob of getting return between -0.01 and y.  What is y?  Let's calibrate the mean and variance of Ford. 
+```{r child = '25%chanceofgettingreturnbetweenXandY.Rmd'}
+```
+

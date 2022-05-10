@@ -1,0 +1,95 @@
+---
+title: "Static ARMA-GARCH"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+```{r}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+
+### Load Date
+library(quantmod)
+startd <-"2012-01-01"  
+endd <-"2015-12-31"
+ticker <- "^GSPC"
+Prices <- Ad(getSymbols(ticker, from = startd, to = endd, auto.assign = FALSE)) # get the adjusted closed price
+Returns <- diff(log(Prices)) # get daily log-return
+Returns <- na.omit(Returns)
+names(Returns)<-"Actual Return"
+
+# Split data
+Train <- Returns["/2014"] 
+Test <- Returns["2015/"]
+```
+
+```{r}
+### Specify Model: ARMA(1,1)-GARCH(1,1)
+library(rugarch)
+spec <- ugarchspec(variance.model=list(model="sGARCH", garchOrder=c(1,1)),
+                   mean.model=list(armaOrder=c(1,1)), 
+                   distribution.model="norm")
+
+# Estimate coefficients
+fit <- ugarchfit(spec = spec, data = Returns, out.sample = length(Test)) # note that out-of-sample data is excluded by indicating out.sample = length(Test)
+coef(fit)
+```
+
+```{r}
+### Make Static Forecast with ARMA(1,1)-GARCH(1,1) Model
+StaticForecast <- ugarchforecast(fitORspec = fit, n.ahead = 1, n.roll=length(Test)-1) 
+
+# Forecast for returns
+StaticForecast_Returns <- data.frame(t(fitted(StaticForecast)))
+names(StaticForecast_Returns) <- rownames(fitted(StaticForecast))
+StaticForecast_Returns # Note that the date shown is when the forecast was made, so 0.00112 is the one-step forecast made on 2014-12-31, which is the forecast for 2015-01-02 Returns
+
+# Forecast for volatility(sigma)
+StaticForecast_Volatility <- data.frame(t(sigma(StaticForecast)))
+names(StaticForecast_Volatility) <- rownames(sigma(StaticForecast))
+StaticForecast_Volatility # Note that the date shown is when the forecast was made
+```
+
+
+```{r}
+### Plot Forecasts
+# Returns
+PlotReturns = cbind(xts(StaticForecast_Returns, order.by = index(Test)), Returns)
+colnames(PlotReturns) <- c("Forecast", "Actual")
+
+{plot(PlotReturns, col = c("red","black"), lwd = 2, ylab = "Returns",
+     main = "Static One-Step Ahead Forecast with ARMA(1,1)-GARCH(1,1) Model", legend.loc = "topleft")
+addEventLines(xts("training", index(Test)[1]), srt=90, pos=2, lwd = 2, col = "blue") }
+
+
+# Volatility
+PlotVolatility = cbind(xts(StaticForecast_Volatility, order.by = index(Test)), sigma(fit))
+PlotVolatility = sqrt(252)*PlotVolatility
+colnames(PlotVolatility) <- c("Forecast", "ModelFitted")
+{plot(PlotVolatility*100, col = c("red","black"), lwd = 2, ylab = "Annual Volatility(%)",
+     main = "Static One-Step Ahead Forecast with ARMA(1,1)-GARCH(1,1) Model", legend.loc = "topleft")
+addEventLines(xts("training", index(Test)[1]), srt=90, pos=2, lwd = 2, col = "blue") }
+
+
+### MSE
+MSE <- rbind("ARMA(1,1)-GARCH(1,1)" = c(mean((Returns - fitted(fit))**2,na.rm = T),
+                              mean((Returns - PlotReturns$Forecast)**2, na.rm = T)))
+colnames(MSE) <- c("In-sample MSE", "Out-of-sample MSE")
+print(MSE)
+```

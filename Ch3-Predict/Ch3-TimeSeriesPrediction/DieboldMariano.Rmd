@@ -1,0 +1,87 @@
+---
+title: "Diebold-Mariano Test"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+The Diebold-Mariano test compares the forecast accuracy of two forecast methods.
+
+#### In-Sample One-Step Forecast
+```{r}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+
+
+### Load Data
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP <- Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+GDPGrowth <- diff(log(GDP)) # calculate log growth rate
+GDPGrowth <- na.omit(GDPGrowth) # get rid of the NAs
+
+### Make Forecasts
+# Build models
+Model1<-arima(GDPGrowth, order = c(1, 0, 0)) # fit an AR(1) model 
+Model2<-arima(GDPGrowth, order = c(0, 0, 3)) # fit an MA(3) model 
+
+
+### Apply DM Test to Model Residuals
+# Extra residuals
+M1Residuals <- Model1$residuals
+M2Residuals <- Model2$residuals
+# DM test on residuals
+library(forecast)
+dm.test(M1Residuals, M2Residuals, h=1) #h is the forecast horizon used in calculating residuals
+# Interpret: High p-value -->  we cannot reject the null hypothesis that Model1 and Model2 have the same levels of accuracy over the training set
+```
+
+
+#### Out-of-Sample One-Step Forecast
+```{r}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+
+### Load Data
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP <- Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+GDPGrowth <- diff(log(GDP)) # calculate log growth rate
+GDPGrowth <- na.omit(GDPGrowth) # get rid of the NAs
+
+# Split Data
+Train <- GDPGrowth["/2014"] 
+Test <- GDPGrowth["2015/"]
+
+
+### Build Models
+Model1<-arima(Train, order = c(1, 0, 0)) # fit an AR(1) model 
+Model2<-arima(Train, order = c(0, 0, 3)) # fit an MA(3) model 
+
+
+### Make One-step Ahead Forecast by Feeding Test Data to Model
+# Note that we included training data because the model needs historical data (Train) to make the first few predictions
+library(forecast)
+Model1.out <- Arima(GDPGrowth, model = Model1) 
+Model2.out <- Arima(GDPGrowth, model = Model2)
+
+
+### Apply DM test
+# Extra residuals over the test set
+M1Residuals.out <- subset(Model1.out$residuals, start=length(Train)+1) 
+M2Residuals.out <- subset(Model2.out$residuals, start=length(Train)+1)
+# DM test on residuals
+dm.test(M1Residuals.out,M2Residuals.out, h = 1) 
+# Interpret: High p-value -->  we cannot reject the null hypothesis that Model1 and Model2 have the same levels of forecast accuracy over the test set
+```
+

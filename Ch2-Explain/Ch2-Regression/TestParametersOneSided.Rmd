@@ -1,0 +1,32 @@
+---
+title: "Test Regression Parameters One-side"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Test Regression Parameters One-side-->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+reg1<-lm(DAX~CAC,Returns) #Run Regression
+print(summary(reg1))
+print('H0: slope > 0')
+h0=0 # set to your hypothesized value
+tstat = (summary(reg1)$coefficients[1,1]-h0)/summary(reg1)$coefficients[1,2]
+pvalue = pt(q=tstat,df = reg1$df,lower.tail = TRUE)
+pvalue
+print('H0: slope < 0')
+h0=0 # set to your hypothesized value
+tstat = (summary(reg1)$coefficients[1,1]-h0)/summary(reg1)$coefficients[1,2]
+pvalue = 1-pt(q=tstat,df = reg1$df,lower.tail = TRUE)
+pvalue
+pvalue = pt(q=tstat,df = reg1$df,lower.tail = FALSE)
+pvalue
+```

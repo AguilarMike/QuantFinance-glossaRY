@@ -1,0 +1,45 @@
+---
+title: "Convert Log Odds to Prob"
+author: "Mike Aguilar"
+date: "22Apr2022"
+output: html_document
+---
+
+
+Reference: https://sebastiansauer.github.io/convert_logit2prob/
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(fredr)
+fred_api_key<-read.csv("../data/fredkey.csv",stringsAsFactors=FALSE)
+fredr_set_key(fred_api_key$Key)
+TenTwo<-fredr(
+  series_id = "T10Y2Y",
+  frequency = "m", # monthly
+  observation_start = as.Date("1977-01-01"),
+  observation_end = as.Date("2022-01-01"),
+  units = "lin"
+)
+Recession<-fredr(
+  series_id = "USREC",
+  frequency = "m", # monthly
+  observation_start = as.Date("1977-01-01"),
+  observation_end = as.Date("2022-01-01"),
+  units = "lin"
+)
+MyData<-data.frame(TenTwo=TenTwo$value,Recession=Recession$value,row.names = Recession$date)
+
+library(xts)
+MyData<-as.xts(MyData)
+MyData$TenTwoLag4 <- lag.xts(MyData$TenTwo,k=4)
+MyData<-na.omit(MyData)
+logit1<-glm(Recession~TenTwoLag4,data=MyData,family = 'binomial')
+
+logit2prob <- function(logit){
+  odds <- exp(logit)
+  prob <- odds / (1 + odds) 
+  return(prob)
+}
+logit2prob(coef(logit1))
+```
+Where .3 is read as 30% probability 

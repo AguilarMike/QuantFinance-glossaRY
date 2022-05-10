@@ -1,0 +1,32 @@
+---
+title: "Quantile-Quantile Plot"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP <- Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+GDPGrowth <- diff(log(GDP)) # calculate log growth rate
+GDPGrowth <- na.omit(GDPGrowth) # get rid of the NAs
+
+library(forecast)
+fit <- auto.arima(GDPGrowth)
+fit
+```
+
+
+```{r}
+### Let's see if the residuals look like a normal distribution with a qq plot
+qqnorm(residuals(fit)); 
+qqline(residuals(fit))
+```

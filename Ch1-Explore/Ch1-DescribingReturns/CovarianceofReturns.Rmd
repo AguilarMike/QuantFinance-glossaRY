@@ -1,0 +1,24 @@
+---
+title: "Covariance of Returns"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+<!-- ### Covariance of Returns -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+library(corrplot)
+Tickers<-c('F','GE','CAT')
+startd = "2015-01-01"
+endd = "2021-04-30"
+TickersReturned<-getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-Tickers
+CovMatrix<-cov(Returns)
+CovMatrix
+```

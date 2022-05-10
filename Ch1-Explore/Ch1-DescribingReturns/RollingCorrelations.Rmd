@@ -1,0 +1,27 @@
+---
+title: "Rolling Correlations"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Rolling Correlations -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+library(corrplot)
+Tickers<-c('F','GE','CAT')
+startd = "2015-01-01"
+endd = "2021-04-30"
+TickersReturned<-getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-Tickers
+cor2 <- function(x) cor(x[,1], x[,2])
+# correlation of trailing 20day window
+RollCorM60D = rollapply(data = Returns[,c("F","GE")], width = 60,FUN=cor2, by.column = FALSE)
+names(RollCorM60D) = "60D"
+```

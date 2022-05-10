@@ -1,0 +1,38 @@
+---
+title: "Chapter 3 Predict"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    mode: selfcontained
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 3
+
+---
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=4,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+<!-- # Predict -->
+
+
+## Forecast via Density
+If we know the distribution, then we can "predict" what might happen next.
+```{r child = 'Ch3-PredictionViaDensity/Ch3-PredictionViaDensity.Rmd'}
+```
+
+## Simulation
+```{r child = 'Ch3-PredictionViaSimulation/Ch3-PredictionViaSimulation.Rmd'}
+```
+## Time Series Forecasting
+```{r child = 'Ch3-TimeSeriesPrediction/Ch3-TimeSeriesPrediction.Rmd'}
+```

@@ -1,0 +1,21 @@
+---
+title: "Regression Predictions"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Regression Predictions -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+newCAC<-data.frame(CAC=seq(-.05,.05,.01))
+PredictedModel<-predict(lm(DAX~CAC,Returns),newCAC,se.fit=TRUE)
+cbind(newCAC,PredictedModel$fit,PredictedModel$se.fit)
+```

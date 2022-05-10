@@ -1,0 +1,36 @@
+---
+title: "Chapter 4 Protect"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    mode: selfcontained
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 4
+
+---
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+<!-- # Protect -->
+## Constructing Portfolios
+Note: Using `Return.portfolio()` does NOT include transaction costs, nor does it produce an Optimal portfolio.
+```{r child = 'Ch4-ConstructingPortfolios/Ch4-ConstructingPortfolios.Rmd'}
+```
+
+## Optimal Portfolios 
+```{r child = 'Ch4-OptimizingPortfolios/Ch4-OptimalPortfolios.Rmd'}
+```
+
+

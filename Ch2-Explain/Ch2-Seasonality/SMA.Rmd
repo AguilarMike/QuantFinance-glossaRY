@@ -1,0 +1,26 @@
+---
+title: "Simple Moving Average"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Simple Moving Average -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(fredr)
+fred_api_key<-read.csv("./fredkey.csv",stringsAsFactors=FALSE)
+fredr_set_key(fred_api_key$Key)
+ticker="FRED/TOTALNSA"
+startdate<-"1980-01-01"
+library(Quandl)
+VehicleNSA=Quandl(ticker,start_date=startdate,type="ts")
+library(TTR)
+Smoothed<-SMA(VehicleNSA,n=12)
+toplot<-cbind(as.xts(VehicleNSA),as.xts(Smoothed))
+colnames(toplot)<-c("NSA","Smoothed")
+plot(toplot,legend.loc="topleft")
+
+```

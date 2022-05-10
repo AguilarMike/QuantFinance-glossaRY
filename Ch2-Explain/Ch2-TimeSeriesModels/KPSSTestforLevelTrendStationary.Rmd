@@ -1,0 +1,25 @@
+---
+title: "Kwiatkowski-Phillips-Schmidt-Shin(KPSS) Test for Level or Trend Stationary"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP = Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+
+
+library(tseries)
+# KPSS test for trend stationary
+kpss.test(GDP, null="Trend")
+# H0: trend stationarity 
+# Interpret: Low p-value -->reject the null hypothesis of trend stationary
+```

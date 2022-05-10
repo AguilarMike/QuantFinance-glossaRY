@@ -1,0 +1,45 @@
+---
+title: "Inflation Adjusted Returns"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Inflation Adjusted Returns (v1) -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+
+ticker = 'AAPL' # asset ticker
+start_date = '2005-01-01' # data start date
+end_date = '2021-02-01' # data end date
+data_src = 'yahoo' # data source
+freq = "monthly" # data frequency
+# load data using `getSymbols`
+getSymbols(ticker,from = start_date,
+           to = end_date, src=data_src, periodicity = freq)
+### load CPI data from FRED
+# set parameters
+ticker = 'CPIAUCSL' # ticker for "Consumer Price Index for All Urban Consumers: All Items", can be found from FRED website
+data_src = 'FRED' # data source
+# load data using `getSymbols`
+getSymbols(ticker, src=data_src)
+### merge CPI data and AAPL price
+dat=merge(AAPL$AAPL.Adjusted, CPIAUCSL, join='left')
+### calculate adjusted price
+# calculate deflator (with deflator on 2017-01 equal to one)
+dat$Deflator = dat$CPIAUCSL/as.numeric(dat$CPIAUCSL['2017-01',])
+# calculate adjusted price
+dat$RealPrice = dat$AAPL.Adjusted/dat$Deflator
+head(dat)
+### method 1: calculate real returns using real price
+price_t_real = dat$RealPrice[-length(dat$RealPrice)] # remove the last observation
+price_diff_real = diff(x = dat$RealPrice,differences = 1) # calculate one period difference
+price_diff_real = na.omit(price_diff_real) #remove NA value
+realReturn_AAPL= price_diff_real/as.numeric(price_t_real)
+names(realReturn_AAPL)="RealReturn_method1"
+# print the first several rows
+head(realReturn_AAPL)
+```

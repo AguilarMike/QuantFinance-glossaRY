@@ -1,0 +1,25 @@
+---
+title: "Hetero.Robust T-Test"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### RobustT Test -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+reg1<-lm(DAX~CAC+FTSE,Returns) #Run Regression
+print(summary(reg1))
+library("lmtest")
+library("sandwich")
+coeftest(reg1, vcov = vcovHC(reg1, type = "HC0"))
+
+
+```

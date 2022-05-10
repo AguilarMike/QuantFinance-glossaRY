@@ -1,0 +1,35 @@
+---
+title: "Currency Adjusted Returns(V2)"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Currency Adjusted Returns (v2) -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(tidyquant)
+ticker = 'AAPL' # asset ticker
+start_date = '2014-09-25' # data start date
+end_date = '2015-02-01' # data end date
+data_src = 'yahoo' # data source
+freq = "daily" # data frequency
+getSymbols(ticker,from = start_date,
+           to = end_date, src=data_src, periodicity = freq)
+ticker = 'DEXUSEU' # ticker for "U.S. / Euro Foreign Exchange Rate", can be found from FRED website
+data_src = 'FRED' # data source
+getSymbols(ticker, src=data_src)
+DEXUSEU = na.approx(DEXUSEU) # fill in missing values with mean of previous and next obs. 
+### merge exchange rate and AAPL price
+dat=merge(AAPL$AAPL.Adjusted, DEXUSEU, join='left')
+### calculate adjusted price: covert USD price to EUR price(our original data price is USD based)
+dat$Price_EUR = dat$AAPL.Adjusted/dat$DEXUSEU
+head(dat)
+price_tEUR = dat$Price_EUR[-length(dat$Price_EUR)] # remove the last observation
+price_diffEUR = diff(x = dat$Price_EUR,differences = 1) # calculate one period difference
+price_diffEUR = na.omit(price_diffEUR) # remove NA value
+Return_AAPL_EUR_method2 = price_diffEUR/as.numeric(price_tEUR)
+head(Return_AAPL_EUR_method2)
+```

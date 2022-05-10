@@ -1,0 +1,39 @@
+---
+title: "Load Fama French5"
+author: "Mike Aguilar, Ziming Huang, Jiaxi Li"
+date: "4/20/2022"
+output: html_document
+---
+
+<!-- ### Load Fama French5 -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(tidyverse)
+library(xts)
+# Load factor data from Ken French website via FTP
+# create temp_file to store the file
+temp <- tempfile()
+# download the file
+filename = c('F-F_Research_Data_5_Factors_2x3_CSV.zip')
+path = c('https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/')
+todownload = paste0(path,filename)
+download.file(todownload, temp)
+# unzip the file, to extract the data
+#ff_factors_raw_data <- unzip(temp, exdir = here("data"))
+ff_factors_raw_data <- unzip(temp)
+# read the contents read_csv and extract the desired dates
+Factors <- read_csv(ff_factors_raw_data, skip = 3) %>%
+  rename("Date" = "...1") %>%
+  mutate_all(as.numeric) %>%
+  filter(Date > 196301) %>%
+  na.omit()
+
+# Format the Factor data frame
+FFdate<-as.Date(paste0(as.character(Factors$Date), '01'), format='%Y%m%d')
+FFdata<-log(select(Factors, -Date)/100+1) #recall: r=ln(1+R)
+FFxts<-xts(FFdata,order.by=FFdate)
+# print the first several rows
+head(FFxts)
+
+```

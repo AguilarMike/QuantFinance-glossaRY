@@ -1,0 +1,45 @@
+---
+title: "Yield Curve Recession"
+author: "Mike Aguilar"
+date: "22Apr2022"
+output: html_document
+---
+
+
+Use a logistic to model recessions with 10yr-2yr Treasury Spread. Note: This is a simplified version of the typical implementation.
+Recession in Next 3 mths = f(10-2yr Treasury Spread @ time t)
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(fredr)
+library(xts)
+
+fred_api_key<-read.csv("../data/fredkey.csv",stringsAsFactors=FALSE)
+fredr_set_key(fred_api_key$Key)
+TenTwo<-fredr(
+  series_id = "T10Y2Y",
+  frequency = "m", # monthly
+  observation_start = as.Date("1977-01-01"),
+  observation_end = as.Date("2022-01-01"),
+  units = "lin"
+)
+Recession<-fredr(
+  series_id = "USREC",
+  frequency = "m", # monthly
+  observation_start = as.Date("1977-01-01"),
+  observation_end = as.Date("2022-01-01"),
+  units = "lin"
+)
+MyData<-data.frame(TenTwo=TenTwo$value,Recession=Recession$value,row.names = Recession$date)
+MyData<-as.xts(MyData)
+
+USRECLEADS<-lag.xts(MyData$Recession,k=-3:-1)
+USRECLEADS$RowSum<-rowSums(USRECLEADS)
+USRECLEADS$RecNext3Mths<-ifelse(USRECLEADS$RowSum>=1,1,0)
+MyData$RecNext3Mths<-USRECLEADS$RecNext3Mths
+MyData<-na.omit(MyData)
+
+
+logit1<-glm(RecNext3Mths~TenTwo,data=MyData,family = 'binomial')
+summary(logit1)
+```

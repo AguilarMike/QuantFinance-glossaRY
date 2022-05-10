@@ -1,0 +1,24 @@
+---
+title: "Price Chart with Multiple Tickers"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Price Chart with Multiple Tickers -->
+<!-- can probaby use the quandl api to make this easier -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+Tickers<-c('F','GE','CAT')
+startd = "2015-01-01"
+endd = "2021-04-30"
+# pull data from yahoo/FRED 
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Prices = do.call(merge,lapply(Tickers, function(x) Ad(get(x))))
+Prices = na.omit(Prices[-1,])
+colnames(Prices)<-Tickers
+plot(Prices,legend.loc = 'topleft')
+```

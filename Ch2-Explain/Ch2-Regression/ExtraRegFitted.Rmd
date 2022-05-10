@@ -1,0 +1,23 @@
+---
+title: "Extract Regression Fitted Values"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Extract Regression Fitted Values -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+reg1<-lm(DAX~CAC,Returns) #Run Regression
+Estimates<-fitted(reg1)
+#or
+Estimates2<-coef(reg1)[1]+coef(reg1)[2]*Returns$CAC
+head(cbind(Estimates,Estimates2))
+```

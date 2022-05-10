@@ -1,0 +1,27 @@
+---
+title: "Chart Evolution of Weights"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ## Chart evolution of weights -->
+```{r, echo = TRUE}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+library(PortfolioAnalytics)
+Tickers<-c('F','GE','CAT')
+startd = "2015-01-01"
+endd = "2021-04-30"
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Prices = do.call(merge,lapply(Tickers, function(x) Ad(get(x))))
+Prices = na.omit(Prices[-1,])
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-Tickers
+port1<-Return.portfolio(R=Returns, verbose = TRUE)
+chart.StackedBar(port1$BOP.Weight["/2015-02-28",])
+```

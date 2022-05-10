@@ -1,0 +1,39 @@
+---
+title: "Cointegration"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+
+startd <-"2013-01-01"  
+endd <-"2013-12-31"
+SPY <- Ad(getSymbols("SPY", from = startd, to = endd, auto.assign = FALSE)) # get the adjusted closed 
+IVV <- Ad(getSymbols("IVV", from = startd, to = endd, auto.assign = FALSE)) # get the adjusted closed 
+
+ 
+### Step 1: Finding the integration order of each series
+library(tseries)
+kpss.test(SPY, null="Trend") # Low p-value --> reject H0 -->Non stationary. 
+kpss.test(IVV, null="Trend") # Low p-value --> reject H0 -->Non stationary. 
+# Take first difference
+SPY_d1<-diff(SPY,differences = 1)
+IVV_d1<-diff(IVV,differences = 1)
+# ADF test for unit root
+adf.test(na.omit(SPY_d1)) # low p-value --> reject H0 -->SPY_d1 is stationary --> SPY is I(1).
+adf.test(na.omit(IVV_d1)) # low p-value --> reject H0 -->IVV_d1 is stationary --> IVV is I(1).
+#Interpret: Series Y_t(IVV) and X_t(SPY) have the same integration order (1)
+
+
+### Step 2: Estimate cointegration coefficient and get residuals
+fit<-lm(IVV~SPY)
+res<-fit$residuals
+
+### Step 3: Do ADF test for unit root
+adf.test(res) # Low p-value --> reject H0--> Residuals are stationary. 
+#Interpret: Y_t(IVV) and X_t(SPY) are co-integrated.
+```

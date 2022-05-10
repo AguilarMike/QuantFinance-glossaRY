@@ -1,0 +1,27 @@
+---
+title: "White Std Errors for Heteroscedasticity"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### White Std Errors for Hetero -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+reg1<-lm(DAX~CAC+FTSE,Returns) #Run Regression
+print(summary(reg1))
+library(car)
+# Examine CAC 
+linearHypothesis(reg1,c("CAC=0"))
+# Examine CAC with hetero robust std errors
+linearHypothesis(reg1,c("CAC=0"),white.adjust = TRUE)
+
+
+```

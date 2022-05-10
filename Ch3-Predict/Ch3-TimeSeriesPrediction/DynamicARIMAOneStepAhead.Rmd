@@ -1,0 +1,52 @@
+---
+title: "ARIMA One-Step Ahead"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+ 
+```{r}
+### Houesekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+
+library(quantmod)
+startd<-"1990-01-01"
+endd<-"2020-12-31"
+Ticker = "GDPC1"
+getSymbols(Ticker,from=startd,to=endd,src='FRED')
+Growth<-diff(log(GDPC1))
+Growth<-na.omit(Growth)
+colnames(Growth)=c("Growth")
+# Split Data
+Train <-Growth["/2014"]
+Test<-Growth["2015/"]
+
+```
+
+
+
+```{r}
+### Dynamic One-Step Ahead Forecast with ARIMA Model
+library(forecast)
+fit<-auto.arima(Train)
+
+# Make 1-step ahead forecast
+StepNum = 1 
+ARIMAForecast <- forecast(fit, h = StepNum) # h is the forecast step number
+ARIMAForecast  
+```

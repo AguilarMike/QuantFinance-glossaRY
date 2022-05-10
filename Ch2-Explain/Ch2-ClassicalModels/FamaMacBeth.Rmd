@@ -1,0 +1,146 @@
+---
+title: "FAMA MACBETH "
+author: "Mike Aguilar, Ziming Huang, Jiaxi Li"
+date: "4/20/2022"
+output: html_document
+---
+
+<!-- ### FAMA MACBETH -->
+```{r}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+# prepare library
+library(quantmod)
+library(tidyverse)
+library(readr)
+library(car)
+library(lmtest)
+library(AER)
+library(lubridate)
+library(xts)
+```
+
+```{r}
+### Download Dow Constituents price data from Yahoo Finance
+# set parameters
+start_date<-"2015-12-01"
+end_date<-"2020-12-31"
+freq<-"daily"
+tickers_code <- c("AXP","AMGN","AAPL","BA","CAT","CSCO","CVX","GS","HD","HON","IBM","INTC","JNJ","KO","JPM","MCD","MMM","MRK","MSFT","NKE","PG","TRV","UNH","CRM","VZ","V","WBA","WMT","DIS")
+
+# pull stock price from yahoo 
+getSymbols(tickers_code,from=start_date,to=end_date,periodicity=freq,src='yahoo')
+```
+
+
+
+```{r}
+### Load Factor Data
+# download factor data from Ken French website via FTP
+download.file(url = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_CSV.zip", destfile = "F-F_Research_Data_Factors_CSV.zip",mode="wb")
+# read the contents and extract the desired dates
+Factors <- read_csv("F-F_Research_Data_Factors_CSV.zip", skip = 3, col_names = T) %>%
+  na.omit()%>%
+  dplyr::rename("Date" = "...1") %>%
+  dplyr::mutate_all(as.numeric) %>%
+  filter(Date > 196301)
+```
+
+```{r}
+# Format the Factor data frame
+FFdate<-as.Date(paste0(as.character(Factors$Date), '01'), format='%Y%m%d')
+# let's only keep market factor and RF (since we only want to run CAPM later) and convert them to log return
+FFdata<-log(select(Factors, -Date)/100+1)
+FFxts<-xts(FFdata,order.by=FFdate)[paste(start_date, "/", end_date, sep = "")]
+# print the first several rows
+head(FFxts)
+```
+
+
+
+```{r}
+# Compute the excess return and join excess return with factor data
+# use `Ad()` to get adjusted closed price
+Price = do.call(merge, lapply(tickers_code, function(x) Ad(get(x))))
+names(Price) = lapply(tickers_code, function(x) paste(x,".Price",sep=""))
+# Extract the last days of each month
+Price = Price[endpoints(Price, on='months')]
+# Alter the date to match with other series
+Price = xts(x = Price, order.by = floor_date(index(Price), "month")) %>%
+  na.omit()
+
+# Let's keep only the appropriate factor data (price data except the first line, since it will become NA after calculating returns)
+FFxts<-FFxts[index(Price)[-1]]
+
+# stocks' excess return
+df <- tibble(Ticker = tickers_code,
+             ExcessReturn.Stock = do.call(c,lapply(tickers_code, function(x)
+               data.frame(periodReturn(Price[,paste(x,".Price",sep = "")], type='log')[-1,]-FFxts$RF))),
+             Date = do.call(c,lapply(Ticker, function(x) (list(index(FFxts)))))
+             )
+
+# Tibble for Factor
+FF_df <- tibble(Date = index(Price)[-1],
+                as.tibble(FFxts)) %>%
+  select(-RF)
+
+# convert to long table and join with the factors
+df_long = df %>%
+  unnest(colnames(df)) %>%
+  inner_join(FF_df)
+head(df_long)
+```
+
+```{r}
+### First-pass Regression
+# Apply FF3 regression using market excess return, SMB and HML as independent variables
+
+# Create the IDs for stocks since we cannot use Tickers directly in group_by
+Stock_IDs <- tibble(Ticker = unique(df_long$Ticker),
+                 IDs = 1:length(unique(df_long$Ticker)))
+
+# apply the full sample regression to calculate the full sample betas for all stocks
+FF3_step1 <- df_long %>%
+  # unite the Stock_IDs
+  inner_join(Stock_IDs) %>%
+  select(-c(Date, Ticker)) %>%
+  group_by(IDs) %>%
+  do(model = lm(ExcessReturn.Stock ~ `Mkt-RF` + SMB + HML, data = .) %>%
+       coefficients())
+
+# Unwrap the results
+FF3_step1_result <- do.call(rbind.data.frame, FF3_step1$model) %>%
+  as_tibble()
+# Rename the variables
+names(FF3_step1_result) = names(Factors)[-length(Factors)]
+names(FF3_step1_result)[1] = "Alpha"
+
+# Add in the Stock_IDs, then add in Ticker
+FF3_step1_result <- Stock_IDs %>%
+  dplyr::inner_join(cbind(FF3_step1[, 1], FF3_step1_result)) %>%
+  select(-IDs)
+
+head(FF3_step1_result)
+```
+
+```{r}
+### Second-pass Regression
+# Re-run the FF3 using betas as independent variables
+# compute mean returns
+Second_reg_data <- df_long %>%
+  # group by ticker then do calculation
+  dplyr::group_by(Ticker) %>%
+  # use summarise to calculate the mean excess return
+  dplyr::summarise(MeanEXRet = mean(ExcessReturn.Stock)) %>%
+  # join with beta estimates
+  dplyr::inner_join(FF3_step1_result) %>%
+  dplyr::select(-Alpha)
+
+# run FF3 regression using betas as independent variables
+FF3_step2 <- lm(MeanEXRet ~ `Mkt-RF` + SMB + HML, data = Second_reg_data)
+summary(FF3_step2)
+```
+
+
+

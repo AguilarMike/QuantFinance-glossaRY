@@ -1,0 +1,69 @@
+---
+title: "GARCH Model"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+#### GARCH Model
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"2010-01-01" #We want from Jan2010 forward. 
+endd<-"2018-01-01"
+freq<-"weekly"
+trans<-"rdiff" # calculate simple return
+ticker <- "WIKI/JPM.11" # we load the JPM closed price data (the 11th column)
+
+JPM <- Quandl(ticker,transform=trans,start_date=startd, end_date=endd, collapse=freq,type="xts")
+colnames(JPM )[1]="SimpleRet" # Add column name 
+# Careful here.  The `rdiff` provides the simple return.  We should convert to log returns since we are running a regression.   
+JPM$LogRet<-log(1+JPM $SimpleRet)
+
+
+### Fit GARCH(1,1) Model
+library(rugarch)
+# GARCH specification
+garchSpec <- ugarchspec(variance.model=list(model="sGARCH",garchOrder=c(1,1)),
+                        mean.model=list(armaOrder=c(0,0)), 
+                        distribution.model="norm")
+# Estimate coefficients
+garchFit <- ugarchfit(spec=garchSpec, data=JPM$LogRet)
+garchFit
+# Interpret: The alpha and beta (ARCH and GARCH terms) appear significant. The Ljung Box text of residuals appears to indicate no more persistence in the residuals nor squared residuals. The LM tests suggest no more ARCH effects. 
+```
+
+
+#### GJR-GARCH Model
+Let's try to fit another popular GARCH model; one with a threshold variable controlling the level of volatility (i.e. GJRGARCH). See here <http://www.scienpress.com/upload/jsem/vol%202_3_6.pdf> for a nice general listing of GARCH variants.
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"2010-01-01" #We want from Jan2010 forward. 
+endd<-"2018-01-01"
+freq<-"weekly"
+trans<-"rdiff" # calculate simple return
+ticker <- "WIKI/JPM.11" # we load the JPM closed price data (the 11th column)
+
+JPM <- Quandl(ticker,transform=trans,start_date=startd, end_date=endd, collapse=freq,type="xts")
+colnames(JPM )[1]="SimpleRet" # Add column name 
+# Careful here.  The `rdiff` provides the simple return.  We should convert to log returns since we are running a regression.   
+JPM$LogRet<-log(1+JPM $SimpleRet)
+
+### Fit GJR-GARCH(1,1) Model
+library(rugarch)
+# GJR-GARCH specification
+garchSpecGJR <- ugarchspec(variance.model=list(model="fGARCH", garchOrder=c(1,1), submodel="GJRGARCH"),
+                           mean.model=list(armaOrder=c(0,0)), 
+                           distribution.model="norm")
+# Estimate coefficients
+gjrgarchFit <- ugarchfit(spec=garchSpecGJR, data=JPM$LogRet)
+gjrgarchFit
+```

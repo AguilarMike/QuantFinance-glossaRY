@@ -1,0 +1,28 @@
+---
+title: "Percentile of Obs. on Specific Date"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Percentile of Obs. on Specific Date -->
+<!-- What is the percentile of the observation on Mar.10, 2020? -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library("tidyquant") 
+library("HistogramTools")
+ticker = 'MSFT' # asset ticker
+start_date = '2017-01-01' # data start date
+end_date = '2021-03-01' # data end date
+data_src = 'yahoo' # data source
+getSymbols(ticker,from = start_date,to = end_date, src=data_src)
+library(PerformanceAnalytics)
+MSFT$Return = MSFT$MSFT.Adjusted/lag.xts(MSFT$MSFT.Adjusted,k=1) - 1 # use lag.xts to obtain the lag for xts data
+TargetReturn = MSFT$Return["2020-03-10"]
+# calculate its quantile
+{EstimatedQuantile = 
+  sum(na.omit(MSFT$Return)<as.numeric(TargetReturn))/length(na.omit(MSFT$Return))}
+cat(paste("\n\nThe return on Mar 10 2020:",TargetReturn,"\nThe estimated quantile :",EstimatedQuantile))
+```

@@ -1,0 +1,122 @@
+---
+title: "Time Series Models"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    mode: selfcontained
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 3
+
+---
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+### ACF
+```{r child = "ACF.Rmd"}
+```
+
+### PACF
+```{r child = "PACF.Rmd"}
+```
+
+### KPSS Test Stationarity
+```{r child = "KPSSTestforLevelTrendStationary.Rmd"}
+```
+
+
+### ADF Test Unit Root
+```{r child = "AugmentedDickey-FullerTestforUnitRoot.Rmd"}
+```
+
+
+### Fix NonStationary w/Diff. 
+```{r child = "RemediationNon-StationaryviaFirstDifferencing.Rmd"}
+```
+
+
+
+### Cointegration
+```{r child = "Cointegration.Rmd"}
+```
+
+
+### ARIMA
+```{r child = "ARIMA.Rmd"}
+```
+
+### ARIMA-Auto Lag Select
+```{r child = "ARIMA-Auto Lag Select.Rmd"}
+```
+
+### SARIMA
+```{r child = "SARIMA.Rmd"}
+```
+
+### Examine Model Residual 
+```{r child = "TimeSeriesModelResidualEvaluation.Rmd"}
+```
+
+
+### Ljung–Box-Residual Indep.
+```{r child = "Ljung–BoxTestforModelResidualIndependence.Rmd"}
+```
+
+### Kolmogorov-Smirnov Test
+```{r child = "Kolmogorov-SmirnovTest.Rmd"}
+```
+
+
+### Quantile-Quantile Plot
+```{r child = "Quantile-QuantilePlot.Rmd"}
+```
+
+
+### Model Comparison
+```{r child = "ModelComparison.Rmd"}
+```
+
+
+### Test for ARCH Effect 
+```{r child = "TestforARCHEffect.Rmd"}
+```
+
+
+### GARCH
+```{r child = "GARCHModel.Rmd"}
+```
+
+
+
+### VAR
+```{r child = "VAR.Rmd"}
+```
+
+
+### Test the Direction of Causality
+```{r child = "TesttheDirectionofCausality.Rmd"}
+```
+
+
+### Impulse Response Function
+```{r child = "ImpulseResponseFunction.Rmd"}
+```
+
+
+### Event Study
+```{r child = "EventStudy.Rmd"}
+```
+
+
+
+

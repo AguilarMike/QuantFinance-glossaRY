@@ -1,0 +1,73 @@
+---
+title: "SARIMA"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+A seasonal autoregressive integrated moving average (SARIMA) model is one step different from an ARIMA model based on the concept of seasonal trends.
+
+#### Fit SARIMA Giving Model Orders
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"2000-01-01"
+endd<-"2018-01-01"
+ticker <- "FRED/HOUSTNSA" #New Privately-Owned Housing Units Started: Total Units
+HSNG <- Quandl(ticker, type="ts",start_date=startd, end_date=endd)
+{plot(HSNG) 
+abline(v = ts(c(2000,2005,2010,2015)),col = "red") # v is for vertical lines
+abline(v = ts(c(2001,2002,2003,2004)), col = "blue", lty = 2)}
+# Evidence of seasonality
+
+### Decide the order of SARIMA
+library(astsa)
+acf2(HSNG, 48) # Interpret: The slow decay shown in the ACF is a sign that differencing may be required
+acf2(diff(HSNG), 48) # Interpret: Even with the first order of differencing, we observe that there is still slow decay in the ACF plots at a seasonal lag period of 12. This thus suggest a seasonal difference to be applied.
+
+acf2(diff(diff(HSNG),12),48)
+# Interpret: 
+# Seasonal Order: From the seasonal lag perspective, we can see that the ACF cuts off at the 2nd seasonal lag, while the PACF appears to tail off. This would suggest a SARMA model of (0,2). 
+# ARMA Order: Within the first seasonal cycle, it can be seen that the ACF appears to be cutting off at lag = 1, while PACF appears to be cutting off at lag = 3. 
+# Thus a proposed model can be ARMA (3,1) x Seasonal (0,3)(lag = 12) for the differenced time series. 
+
+
+### Fit SARIMA Model
+arima(HSNG, order = c(3,1,1), seasonal = list(order = c(0,1,2), period = 12))
+
+library(forecast)
+sarima(HSNG, p=3, d=1, q=1, P=0, D=1, Q=2, S=12) # sarima() takes in arguments in the following order: data, ARIMA inputs (p,d,q), SARIMA inputs (P,D,Q), and seasonal lag S 
+
+
+### Forecast
+sarima.for(HSNG, n.ahead = 20, p=3, d=1, q=1, P=0, D=1, Q=2, S=12) # forecast prediction for next 20 time points
+```
+
+
+#### Fit SARIMA Without Giving Model Orders
+We can use the `auto.arima()` function from the `forecast` package and set `seasonal = TRUE` to ask R to return the best ARIMA/SARIMA model according to either AIC, AICc or BIC value.  
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"2000-01-01"
+endd<-"2018-01-01"
+ticker <- "FRED/HOUSTNSA" #New Privately-Owned Housing Units Started: Total Units
+HSNG <- Quandl(ticker, type="ts",start_date=startd, end_date=endd)
+{plot(HSNG) 
+abline(v = ts(c(2000,2005,2010,2015)),col = "red") # v is for vertical lines
+abline(v = ts(c(2001,2002,2003,2004)), col = "blue", lty = 2)}
+# Evidence of seasonality
+
+
+### Fit SARIMA Model
+library(forecast)
+auto.arima(HSNG, seasonal = TRUE)
+# We have a model with ARIMA order (p=1,d=1,q=1), seasonal order (P=0,D=1,Q=2), and seasonal lag S=12
+```

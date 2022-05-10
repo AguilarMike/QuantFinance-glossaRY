@@ -1,0 +1,40 @@
+---
+title: "CAPM"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### CAPM -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+startd<-"2015-12-01"
+endd<-"2020-12-31"
+freq<-"monthly"
+tickers_code <- c("MSFT","^GSPC","TB4WK") # GSPC=SP500; TB4WK=1mt Treasury Yield
+getSymbols(tickers_code[1:2],from = startd, to =endd, periodicity = freq, src = 'yahoo')
+getSymbols(tickers_code[3],src = 'FRED')
+### Data processing
+tickers = gsub("[[:punct:]]", "", tickers_code)
+# Prices
+Price = do.call(merge, lapply(tickers[1:2], function(x) Ad(get(x))))
+names(Price) = lapply(tickers[1:2], function(x) paste(x,".Price",sep=""))
+# Returns
+{Return = do.call(merge,lapply(Price, function(x) 
+        periodReturn(x,period='monthly',type='log')))}
+names(Return) = lapply(tickers[1:2], function(x) paste(x,".Return",sep=""))
+# Risk free rate
+Rf = TB4WK["2016-01-01/2020-12-31"] # this is an annual rate by default
+Rf = (Rf/100+1)^(1/12)-1 # convert to monthly date
+Rf = log(1+Rf) # convert to log
+names(Rf) = "Rf"
+Asset = do.call(merge,list(Price,Return,Rf))### merge data together
+Asset = na.omit(Asset)#clean NA's
+Asset$GSPC.ExcessReturn=Asset$GSPC.Return-Asset$Rf
+Asset$MSFT.ExcessReturn=Asset$MSFT.Return-Asset$Rf
+CAPMModel=lm(MSFT.ExcessReturn~GSPC.ExcessReturn,data=Asset) #run CAPM
+print(summary(CAPMModel))
+```

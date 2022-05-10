@@ -1,0 +1,23 @@
+---
+title: "Load SP500 Tickers"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### SP500 Tickers -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+# prepare library
+library(rvest) # crawl data from html
+# fetch S&P ticker list from wiki
+url <- "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+SP500 <- url %>%
+  xml2::read_html() %>%
+  html_nodes(xpath='//*[@id="mw-content-text"]/div/table[1]') %>%
+  html_table()
+SP500 <- SP500[[1]]
+SP500_Tickers <- SP500$Symbol
+```

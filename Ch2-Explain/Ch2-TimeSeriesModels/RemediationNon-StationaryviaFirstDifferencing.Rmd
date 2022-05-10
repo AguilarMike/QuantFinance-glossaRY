@@ -1,0 +1,37 @@
+---
+title: "Remediation Non-Stationary via First Differencing"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP = Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+colnames(GDP)[1]="Level" # Add column name 
+
+# Use ADF test to check if it is non-stationary 
+library(tseries)
+adf.test(GDP$Level)
+# Interpret: High p-value -->fail to reject the null hypothesis of non-stationary. This series is non-stationary
+```
+
+In order to get this in a commonly used format, we will first take logs, noting that the a first diff of logs is a % change.
+
+```{r}
+GDP$LogLevel<- log(GDP$Level) 
+GDP$FirstDifLog<- diff(GDP$LogLevel, differences = 1)
+GDP<-na.omit(GDP) # get rid of the NAs
+
+# Now use the ADF test again to check if it is still non-stationary 
+adf.test(GDP$FirstDifLog)
+# Interpret: Low p-value --> reject the null hypothesis of non-stationarity
+# Our data apears to now be stationary due to differencing
+```

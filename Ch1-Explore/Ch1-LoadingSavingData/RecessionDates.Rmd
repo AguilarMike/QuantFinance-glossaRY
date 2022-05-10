@@ -1,0 +1,14 @@
+---
+title: "RecessionDates"
+author: "Mike Aguilar"
+date: "22Apr2022"
+output: html_document
+---
+
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+getSymbols("USREC",src="FRED")
+```

@@ -1,0 +1,29 @@
+---
+title: "Chart Asset Return Contributions"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ## Chart asset return contributions -->
+```{r, echo = TRUE}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+library(PortfolioAnalytics)
+Tickers<-c('F','GE','CAT')
+startd = "2015-01-01"
+endd = "2021-04-30"
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Prices = do.call(merge,lapply(Tickers, function(x) Ad(get(x))))
+Prices = na.omit(Prices[-1,])
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-Tickers
+port1<-Return.portfolio(R=Returns, verbose = TRUE)
+chart.TimeSeries(port1$contribution,legend.loc = 'bottomright')
+Contributions<-cumsum(port1$contribution)
+chart.TimeSeries(Contributions,legend.loc = 'topleft')
+```

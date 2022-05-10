@@ -1,0 +1,25 @@
+---
+title: "Multi-Asset Indexed Price Chart"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Multi Asset Indexed Price Chart -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+Tickers<-c('F','GE','CAT')
+startd = "2015-01-01"
+endd = "2021-04-30"
+TickersReturned<-getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Prices = as.xts(data.frame(F=F$F.Adjusted,GE=GE$GE.Adjusted, CAT=CAT$CAT.Adjusted))
+colnames(Prices)<-Tickers
+Assets_begPrice=as.numeric(head(Prices,n=1))
+Assets_GrossCumRet<- Prices/rep((Assets_begPrice), each = nrow(Prices))
+Assets_Index<-100*Assets_GrossCumRet
+plot(Assets_Index,legend.loc = 'topleft')
+
+```

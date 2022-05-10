@@ -1,0 +1,22 @@
+---
+title: "Load DJIA Tickers"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Load DJIA Tickers -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+# prepare library
+library(rvest) # crawl data from html
+url <- "https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average"
+DOWJIA <- url %>%
+  xml2::read_html() %>%
+  html_nodes(xpath='//*[@id="constituents"]') %>%
+  html_table()
+DOWJIA <- DOWJIA[[1]]
+DOWJIA_Tickers <- DOWJIA$Symbol
+```

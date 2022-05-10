@@ -1,0 +1,73 @@
+---
+title: "Rolling CAPM"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Rolling CAPM -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+startd<-"2015-12-01"
+endd<-"2020-12-31"
+freq<-"monthly"
+tickers_code <- c("IBM","^GSPC","TB4WK") # GSPC=SP500; TB4WK=1mt Treasury Yield
+getSymbols(tickers_code[1:2],from = startd, to =endd, periodicity = freq, src = 'yahoo')
+getSymbols(tickers_code[3],src = 'FRED')
+library(tidyverse)
+# risk free rate
+Rf = TB4WK["2016-01-01/2020-03-31"] # annual rate
+Rf = (Rf/100+1)^(1/12)-1 # convert to month rate
+Rf = log(1+Rf) # converting to log returns
+names(Rf) = "Rf"
+# market excess return
+ExcessReturn.Market = data.frame(periodReturn(Ad(get("GSPC")),
+                                period = "monthly",type='log')[-1,]-Rf)
+# stocks' excess return
+df <- tibble(Ticker = tickers_code[1],
+             ExcessReturn.Stock = do.call(c,lapply(Ticker, function(x) 
+               data.frame(periodReturn(Ad(get(x)),type='log')[-1,]-Rf))),
+             ExcessReturn.Market = rep(ExcessReturn.Market,1),
+             #Date = index(Rf)
+             Date = do.call(c,lapply(Ticker, function(x) (list(index(Rf)))))
+             )
+
+library(plyr)
+# convert to long table
+df_long = df %>% unnest(colnames(df))
+#Break up df_long by Ticker, then fit the specified model to each piece and return a list
+models <- dlply(df_long, "Ticker", function(x) lm(ExcessReturn.Stock~1+ExcessReturn.Market, data = x))
+
+# Apply coef to each model and return a data frame
+coefs=ldply(models, coef)
+names(coefs) = c("Ticker","Intercept","Beta")
+library(rollRegres)
+rollmodels <- dlply(df_long, "Ticker", function(x) roll_regres(ExcessReturn.Stock~1+ExcessReturn.Market,
+                          x,width = 24L,
+                          do_compute = c("sigmas", "r.squareds")))
+# rolling coefficients
+rollcoefs=ldply(rollmodels, function(x) x$coefs)
+rollcoefs$Date = rep(index(Rf),1)
+rollcoefs = na.omit(rollcoefs)
+rollcoefs=rollcoefs[order(rollcoefs$Date,rollcoefs$Ticker),]
+row.names(rollcoefs) =NULL
+names(rollcoefs) = c("Ticker","Alpha","Beta","Date")
+head(rollcoefs,10)
+colors = c("darkred")
+linestypes = c("solid")
+shapes = c(15)
+ggplot(data = rollcoefs,
+       aes(x=Date,y=Beta,group = Ticker,color = Ticker, lty = Ticker,shape = Ticker))+
+  geom_point()+
+  geom_line()+
+  scale_x_date(date_breaks = "6 months" , date_labels = "%Y-%m")+
+  scale_color_manual(values = alpha(colors,0.5)) +
+  scale_linetype_manual(values = linestypes)+ 
+  scale_shape_manual(values=shapes)+
+  labs(x="Date", y="",title = "Rolling Beta (estimated window = 2 year)")
+
+ 
+```

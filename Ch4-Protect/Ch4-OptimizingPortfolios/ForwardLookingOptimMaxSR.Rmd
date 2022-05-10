@@ -1,0 +1,60 @@
+---
+title: "Efficient Frontier"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+```{r,warning=FALSE}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+library(PerformanceAnalytics)
+startd = "2015-01-01"
+endd = "2021-04-30"
+Tickers = c("IBM","GE","F","MSFT")
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-Tickers
+
+#Calculate mean returns and covariance
+MeanRet <- sapply(Returns,FUN=mean)
+CovRet <- cov(Returns)
+#Set expected returns 5% lower than historical avg.
+ExpRet <- MeanRet*(1-.05)
+#Set variances 5% higher, but covariances the same
+ScaledVar <- diag(CovRet)*1.05
+ExpCov <- CovRet
+diag(ExpCov) <-ScaledVar
+
+#install.packages("IntroCompFinR", repos="http://R-Forge.R-project.org")
+library(IntroCompFinR) 
+
+# Maximize expected Sharpe Ratio 
+ExpRiskFree <- 0.75/100/30 # should match the return data frequency
+opt.MaxSR <- tangency.portfolio(er = ExpRet, 
+                                cov.mat = ExpCov, 
+                                risk.free = ExpRiskFree,
+                                shorts = FALSE)
+opt.MaxSR
+barplot(opt.MaxSR$weights,las=2,cex.name=.6,main="Max Sharpe Ratio Weights",ylim=c(0,.5))
+Return.MaxSR <- Return.portfolio(R=Returns, weights=opt.MaxSR$weights, geometric=F) 
+charts.PerformanceSummary(Return.MaxSR)
+```

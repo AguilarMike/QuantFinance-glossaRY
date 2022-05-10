@@ -1,0 +1,32 @@
+---
+title: "ARIMA - Auto Lag Select"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+We can use the `auto.arima()` function from the `forecast` package to ask R to return the best ARIMA model according to either AIC, AICc or BIC value. 
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP <- Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+GDPGrowth <- diff(log(GDP)) # calculate log growth rate
+GDPGrowth <- na.omit(GDPGrowth) # get rid of the NAs
+
+library(forecast)
+AR <- auto.arima(GDPGrowth, max.q = 0) # set the maximum value of MA order q=0 to auto fit an AR model
+AR # print the model 
+
+MA <- auto.arima(GDPGrowth, max.p = 0) # set the maximum value of AR order p=0 to auto fit an AR model
+MA # print the model 
+
+ARMA <- auto.arima(GDPGrowth) # fit an ARMA model(the fitted model might be AR, MA or ARIMA)
+ARMA # print the model 
+```

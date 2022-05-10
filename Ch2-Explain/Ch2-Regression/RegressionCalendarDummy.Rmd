@@ -1,0 +1,27 @@
+---
+title: "Regression with Calendar Dummy"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Regression with Calendar Dummy -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library("tidyquant") 
+Tickers = c('MSFT','GE') # asset ticker
+start_date = '2017-01-01' # data start date
+end_date = '2021-03-01' # data end date
+data_src = 'yahoo' # data source
+getSymbols(Tickers,from = start_date,to = end_date, src=data_src)
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='log')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-Tickers
+library(lubridate)
+Returns$Q1<-ifelse(quarter(index(Returns))==1,1,0)
+reg1=lm(MSFT~GE*Q1,data=Returns)
+print(summary(reg1))
+```

@@ -1,0 +1,51 @@
+---
+title: "Classification"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    mode: selfcontained
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 3
+
+---
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+### Simple Logistic
+```{r child = 'SimpleLogit.Rmd'}
+```
+
+
+### Convert Log Odds to Prob
+```{r child = 'LogOddsToProb.Rmd'}
+```
+
+
+### Logit Marginal Effects
+```{r child = 'LogitMarginalEffects.Rmd'}
+```
+
+
+### Logit Confusion Matrix
+```{r child = 'LogitConfusion.Rmd'}
+```
+
+### Logit Prediction 
+```{r child = 'LogitPrediction.Rmd'}
+```
+
+
+### Yield Curve Recession
+```{r child = 'YieldCurveRec.Rmd'}
+```

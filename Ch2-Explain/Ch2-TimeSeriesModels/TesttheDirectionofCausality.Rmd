@@ -1,0 +1,96 @@
+---
+title: "Test the Direction of Causality"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+#### Test the Direction of Causality Using `causality()`
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd <-"1980-04-01"  
+endd <-"2012-12-31"
+
+TB3MS <- Quandl("FRED/TB3MS",start_date=startd, end_date=endd,type="ts")
+TB10YS <- Quandl("FRED/GS10",start_date=startd, end_date=endd,type="ts")
+GDP <- Quandl("FRED/GDPC96",start_date=startd, end_date=endd,type="ts", transform="rdiff")# note this is simple return, we need log return since we want to run regression
+
+TSpread <- TB10YS - TB3MS 
+TSpread <- aggregate(TSpread,nfrequency=4,FUN=mean)# aggregate monthly data to quarterly(averages)
+GDPGrowth = 400*log(1+GDP)# annual log growth rate%
+
+### VAR Model
+library(vars)
+VAR_Data<-na.omit(ts.union(GDPGrowth, TSpread)) #set up data for estimation
+VARselect(VAR_Data, lag.max = 12, type = "const")$selection #obtain the best lag period
+VAR_fit<-VAR(y = VAR_Data, p = 2)
+summary(VAR_fit)
+
+
+### Granger Causality Tests
+# H0: GDPGrowth does not Granger-cause TSpread (GDPGrowth is not the cause varaible) <=> H0: a21 = a23 = 0
+causality(VAR_fit, cause = "GDPGrowth")$Granger
+
+# H0: TSpread does not ranger-cause GDPGrowth (TSpread is not the cause varaible) <=> H0: a12 = a14 = 0
+causality(VAR_fit, cause = "TSpread")$Granger
+```
+
+
+#### Test the Direction of Causality Using `linearHypothesis()`
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd <-"1980-04-01"  
+endd <-"2012-12-31"
+
+TB3MS <- Quandl("FRED/TB3MS",start_date=startd, end_date=endd,type="ts")
+TB10YS <- Quandl("FRED/GS10",start_date=startd, end_date=endd,type="ts")
+GDP <- Quandl("FRED/GDPC96",start_date=startd, end_date=endd,type="ts", transform="rdiff")# note this is simple return, we need log return since we want to run regression
+
+TSpread <- TB10YS - TB3MS 
+TSpread <- aggregate(TSpread,nfrequency=4,FUN=mean)# aggregate monthly data to quarterly(averages)
+GDPGrowth = 400*log(1+GDP)# annual log growth rate%
+
+### Model selection
+VAR_Data<-na.omit(ts.union(GDPGrowth, TSpread)) #set up data for estimation
+VARselect(VAR_Data, lag.max = 12, type = "const")$selection #obtain the best lag period
+# Interpret: All the information criteria suggest using lags = 2 --> we need to set p=2 when estimating the mod
+
+
+### Estimate VAR equations separately by OLS
+library(dynlm)
+VAR_EQ1<-dynlm(GDPGrowth ~ L(GDPGrowth, 1:2) + L(TSpread, 1:2), start=c(1981,1), end=c(2012,4))
+VAR_EQ2<-dynlm(TSpread ~ L(GDPGrowth, 1:2) + L(TSpread, 1:2), start=c(1981,1), end=c(2012,4))
+# Rename regressors for better readability
+names(VAR_EQ1$coefficients) <- c("Intercept","Growth_t-1", "Growth_t-2", "TSpread_t-1", "TSpread_t-2")
+names(VAR_EQ2$coefficients) <- names(VAR_EQ1$coefficients)
+
+# Obtain Robust Coefficient
+library(lmtest)
+library(sandwich)
+coeftest(VAR_EQ1, vcov. = sandwich)
+coeftest(VAR_EQ2, vcov. = sandwich)
+
+
+### Granger causality tests
+library(car)
+# H0: X does not Granger Cause Y
+linearHypothesis(VAR_EQ1, 
+                 hypothesis.matrix = c("TSpread_t-1", "TSpread_t-2"),
+                 vcov. = sandwich)
+linearHypothesis(VAR_EQ2, 
+                 hypothesis.matrix = c("Growth_t-1", "Growth_t-2"),
+                 vcov. = sandwich)
+# Interpret: Both Granger causality tests reject at the level of 5%, this is evidence in favor of the conjecture that the term spread has power in explaining GDP growth and vice versa
+```
+
+
+

@@ -1,0 +1,31 @@
+---
+title: "Indexed Price Chart"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Indexed Price Chart -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library("tidyquant") 
+ticker = c('MSFT','IBM') # asset ticker
+start_date = '2017-01-01' # data start date
+end_date = '2021-03-01' # data end date
+data_src = 'yahoo' # data source
+getSymbols(ticker,from = start_date,to = end_date, src=data_src)
+Prices = do.call(merge,lapply(ticker, function(x) Ad(get(x))))
+Prices = na.omit(Prices[-1,])
+Returns = do.call(merge,lapply(ticker, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-ticker
+StartingEquity=1
+GrossReturns <- Returns+1
+GrossReturns[1,]<-StartingEquity 
+GrossReturns<-cumprod(GrossReturns)
+head(GrossReturns)
+chart.TimeSeries(GrossReturns,legend.loc = 'topleft')
+```

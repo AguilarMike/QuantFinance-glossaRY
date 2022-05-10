@@ -1,0 +1,25 @@
+---
+title: "DeMean"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+### Mult-Asset Total Returns
+```{r, message=FALSE}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+Tickers<-c('F','GE','CAT')
+startd = "2015-01-01"
+endd = "2021-04-30"
+TickersReturned<-getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-Tickers
+GrossReturns<- 1+Returns
+TR<-apply(GrossReturns,2,prod)-1
+TR
+```
+

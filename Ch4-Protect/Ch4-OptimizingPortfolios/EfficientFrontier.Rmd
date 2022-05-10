@@ -1,0 +1,78 @@
+---
+title: "Efficient Frontier"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+```{r}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+
+
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+### Load Data
+library(quantmod)
+startd = "2015-01-01"
+endd = "2021-04-30"
+Tickers = c("IBM","GE","F","MSFT")
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+### Compute Returns
+Return = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Return = na.omit(Return[-1,])
+colnames(Return)<-Tickers
+
+
+# Create the portfolio specification
+library(PortfolioAnalytics)
+init.portf <-portfolio.spec(assets = colnames(Return))
+
+# Add a full investment constraint such that the weights sum to 1
+init.portf <- add.constraint(portfolio=init.portf, type="full_investment")
+
+
+# Add risk and return objective(we need them to calculate the Sharpe ratio
+init.portf <- add.objective(portfolio=init.portf, type="return", name = "mean")
+init.portf <- add.objective(portfolio=init.portf, type="risk", name = "StdDev")
+
+### Efficient Frontier
+MeanSd.EF <- create.EfficientFrontier(
+                      R = Return,
+                      portfolio = init.portf,
+                      type = "mean-sd",
+                      n.portfolios = 50)
+summary(MeanSd.EF)
+
+
+# Plot
+chart.EfficientFrontier(MeanSd.EF,
+                        match.col="StdDev",      # which column to use for risk
+                        RAR.text="Sharpe Ratio", # string name for risk adjusted return text
+                        rf=0,                    # risk free rate
+                        tangent.line = TRUE,
+                        type="l",                # plot line type
+                        chart.assets=TRUE,
+                        labels.assets=TRUE)
+```
+
+
+
+

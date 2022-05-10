@@ -1,0 +1,75 @@
+---
+title: "Min Variance - Target Return & Fully Invested & Long Only"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+```{r}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+### Load Data
+library(quantmod)
+startd = "2015-01-01"
+endd = "2021-04-30"
+Tickers = c("IBM","GE","F","MSFT")
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+### Compute Returns
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-Tickers
+
+### Construct Portfolio
+# Create the portfolio specification
+library(PortfolioAnalytics)
+init.portf <-portfolio.spec(assets = colnames(Returns))
+
+
+# Add a full investment constraint such that the weights sum to 1
+init.portf <- add.constraint(portfolio=init.portf, type="full_investment")
+
+
+# Add risk and return objective(we need them to calculate the Sharpe ratio)
+init.portf <- add.objective(portfolio=init.portf, type="return", name = "mean")
+init.portf <- add.objective(portfolio=init.portf, type="risk", name = "StdDev")
+### Solve Portfolio
+library(ROI)
+opt <- optimize.portfolio(R=Returns, 
+                                portfolio=init.portf, 
+                                optimize_method="ROI",
+                                maxSR=TRUE,
+                                trace=TRUE)
+
+
+summary(opt) # The optimization summary should be read carefully since not every constraint is guaranteed to be satisfied
+
+### Visualize result
+library(PerformanceAnalytics)
+# Optimal weights
+OptWeight = extractWeights(opt)
+sum(OptWeight)
+chart.Weights(opt)
+
+
+# Portfolio returns
+PortReturn <- Return.portfolio(R = Returns, 
+                              weights = OptWeight, 
+                              geometric = FALSE) #use arithmetic(FALSE) to aggregate returns
+chart.TimeSeries(PortReturn)
+mean(PortReturn)
+
+# Variance
+var(PortReturn)
+```
+
+
+

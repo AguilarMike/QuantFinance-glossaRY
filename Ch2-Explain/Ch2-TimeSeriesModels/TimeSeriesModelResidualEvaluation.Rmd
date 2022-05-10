@@ -1,0 +1,35 @@
+---
+title: "Time Series Model Evaluation"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP <- Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+GDPGrowth <- diff(log(GDP)) # calculate log growth rate
+GDPGrowth <- na.omit(GDPGrowth) # get rid of the NAs
+
+library(forecast)
+fit <- auto.arima(GDPGrowth)
+fit
+```
+
+```{r}
+### Ensure errors white noise. 
+# Ideally, residuals should look like white noise, meaning they are 
+# normally distributed.
+# We will use tsdisplay to check the residuals for our optimal model. 
+tsdisplay(residuals(fit), lag.max=45, main='Model Residuals')
+# Interpret: The ACF and PACF indicate little to no persistence.  The time series plot shows little remaining patterns 
+# to the data. 
+```

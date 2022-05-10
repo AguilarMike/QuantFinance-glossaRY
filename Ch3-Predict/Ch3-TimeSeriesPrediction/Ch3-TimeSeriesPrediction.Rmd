@@ -1,0 +1,99 @@
+---
+title: "Time Series Prediction"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    mode: selfcontained
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 4
+
+---
+
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+### ARIMA One-Step Ahead
+```{r child = 'DynamicARIMAOneStepAhead.Rmd'}
+```
+
+
+### ARIMA Multi-Step Ahead
+```{r child = 'DynamicARIMAMultiStepAhead.Rmd'}
+```
+
+
+### GARCH One-Step Ahead
+```{r child = 'DynamicGARCHOneStepAhead.Rmd'}
+```
+
+
+### GARCH Multi-Step Ahead
+```{r child = 'DynamicGARCHMultiStepAhead.Rmd'}
+```
+
+
+### ARMA-GARCH
+```{r child = 'StaticARMAGARCH.Rmd'}
+```
+
+
+### Rolling ARMA-GARCH
+```{r child = 'RollingARMAGARCH.Rmd'}
+```
+
+
+### OOS Forecast Accuracy
+```{r child = 'OOSAccuracy.Rmd'}
+```
+
+
+### Diebold Mariano Test
+```{r child = 'DieboldMariano.Rmd'}
+```
+
+
+### NNETAR One-Step Ahead
+```{r child = 'StaticNNETAROneStepAhead.Rmd'}
+```
+
+
+<!-- ### NNETAR Multi-Step Ahead -->
+
+
+
+
+<!-- i.	Static ARIMA  1 step ahead -->
+<!-- ii.	Static ARIMA 5 steps ahead -->
+<!-- iii.	Static GARCH 1 step ahead -->
+<!-- iv.	Static GARCH 5 steps ahead -->
+<!-- v.	Static ARMA-GARCH -->
+<!-- vi.	Rolling ARMA GARCH -->
+<!-- vii.	OOS Accuracy  -->
+<!-- viii.	Diebold Mariano -->
+<!-- ix.	NNETAR 1 step ahead -->
+<!-- x.	NNETAR 5 steps ahead -->
+
+
+
+
+
+
+
+
+
+
+
+
+

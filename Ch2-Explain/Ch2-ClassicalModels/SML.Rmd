@@ -1,0 +1,78 @@
+---
+title: "Security Market Line"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Security Market Line -->
+```{r fig.width=10, fig.height=4}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+startd<-"2015-12-01"
+endd<-"2020-12-31"
+freq<-"monthly"
+tickers_code <- c("IBM","F","GE","CAT","MSFT","^GSPC","TB4WK") # GSPC=SP500; TB4WK=1mt Treasury Yield
+getSymbols(tickers_code[1:6],from = startd, to =endd, periodicity = freq, src = 'yahoo')
+getSymbols(tickers_code[7],src = 'FRED')
+library(tidyverse)
+# risk free rate
+Rf = TB4WK["2016-01-01/2020-03-31"] # annual rate
+Rf = (Rf/100+1)^(1/12)-1 # convert to month rate
+Rf = log(1+Rf) # converting to log returns
+names(Rf) = "Rf"
+# market excess return
+ExcessReturn.Market = data.frame(periodReturn(Ad(get("GSPC")),
+                                period = "monthly",type='log')[-1,]-Rf)
+# stocks' excess return
+df <- tibble(Ticker = tickers_code[1:5],
+             ExcessReturn.Stock = do.call(c,lapply(Ticker, function(x) 
+               data.frame(periodReturn(Ad(get(x)),type='log')[-1,]-Rf))),
+             ExcessReturn.Market = rep(ExcessReturn.Market,5),
+             #Date = index(Rf)
+             Date = do.call(c,lapply(Ticker, function(x) (list(index(Rf)))))
+             )
+
+library(plyr)
+# convert to long table
+df_long = df %>% unnest(colnames(df))
+#Break up df_long by Ticker, then fit the specified model to each piece and return a list
+models <- dlply(df_long, "Ticker", function(x) lm(ExcessReturn.Stock~1+ExcessReturn.Market, data = x))
+
+# Apply coef to each model and return a data frame
+coefs=ldply(models, coef)
+names(coefs) = c("Ticker","Intercept","Beta")
+### expected Rf and market return
+Rf_avg = mean(Rf)
+Mkt_avg = mean(ExcessReturn.Market$monthly.returns)+Rf_avg
+
+### require return from CAPM
+coefs$RequireReturn = Rf_avg + coefs$Beta*(Mkt_avg-Rf_avg)
+coefs$ExpectedReturn = ddply(df_long,"Ticker",summarise,
+                  Mean = mean(ExcessReturn.Stock,na.rm = TRUE))$Mean+Rf_avg
+head(coefs)
+
+colors = c("darkred","steelblue","darkgreen","yellow4","darkblue")
+linestypes = c("solid","longdash","twodash","dashed","dotdash")
+shapes = c(15:19)
+ggplot(coefs,aes(x = Beta,color = Ticker))+
+  geom_abline(intercept = Rf_avg,slope = Mkt_avg-Rf_avg,color="grey",size = 2, alpha =0.6)+
+  geom_point(aes(y=ExpectedReturn,color = Ticker),size = 3,shape=15)+
+  geom_point(aes(y=RequireReturn,color = Ticker),size = 3)+
+  geom_point(aes(x=0,y=Rf_avg),color = "darkgreen",size=5,shape = 2)+
+  geom_point(aes(x=1,y=Mkt_avg),color = "darkgreen",size=5,shape = 2)+
+  annotate(geom="text", x=1.08, y=Mkt_avg-0.001, label="M(Market portfolio)",
+              color="darkgreen")+
+  annotate(geom="text", x=0.1, y=Rf_avg, label="Risk-free Rate",
+              color="darkgreen")+
+  geom_segment(aes(x = 1, y = 0, xend = 1, yend = Mkt_avg),linetype="dashed")+
+  geom_segment(aes(x = 0, y = Mkt_avg, xend = 1, yend = Mkt_avg),linetype="dashed")+
+  scale_color_manual(values = alpha(colors,0.7)) +
+  scale_fill_manual(values = alpha(colors,0.7))+
+  scale_y_continuous(labels = scales::percent)+
+  scale_x_continuous(expand = c(0.0001, 0, 0.1, 0.1))+
+  labs(x="Beta", y="Return",title = "Security Market Line")+
+  theme(panel.border = element_blank())
+```

@@ -1,0 +1,30 @@
+---
+title: "Batch Grab Symbols"
+author: "Mike Aguilar"
+date: '2022-05-03'
+output: html_document
+---
+
+
+Task: Paste a list of tickers into R in order to conduct analysis. 
+
+Step 1: Set up an XLS like below and use the CONCAT function
+
+```{r pressure, echo=FALSE, out.width = '50%'}
+knitr::include_graphics("Load2.png")
+```
+
+The result should look like
+
+```{r pressure2, echo=FALSE, out.width = '50%'}
+knitr::include_graphics("Load1.png")
+```
+
+Copy the result in F7. 
+
+
+Step 2: Within R, name your vector and then paste your XLS vector
+
+```{r pressure3, echo=FALSE, out.width = '50%'}
+knitr::include_graphics("Load3.png")
+```

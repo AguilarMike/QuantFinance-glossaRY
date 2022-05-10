@@ -1,0 +1,28 @@
+---
+title: "Find Date of Specific Quantile"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Find Date of Specific Quantile -->
+<!-- What is the date of the 80th percentile observation? -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library("tidyquant") 
+library("HistogramTools")
+ticker = 'MSFT' # asset ticker
+start_date = '2017-01-01' # data start date
+end_date = '2021-03-01' # data end date
+data_src = 'yahoo' # data source
+getSymbols(ticker,from = start_date,to = end_date, src=data_src)
+library(PerformanceAnalytics)
+MSFT$Return = MSFT$MSFT.Adjusted/lag.xts(MSFT$MSFT.Adjusted,k=1) - 1 # use lag.xts to obtain the lag for xts data
+# calculate 80th percentage quantile return
+Quantile80 = quantile(MSFT$Return,probs=0.8,na.rm=TRUE)
+# find the data index with closest return to Quantile80
+index80 = which.min(abs(Quantile80-MSFT$Return))
+cat(paste("\n\nThe 80th percentile price:",Quantile80,"\nThe date found is:",index(MSFT)[index80],"\nThat day's return is:",MSFT$Return[index80]))
+```

@@ -1,0 +1,35 @@
+---
+title: "ARIMA"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP <- Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+GDPGrowth <- diff(log(GDP)) # calculate log growth rate
+GDPGrowth <- na.omit(GDPGrowth) # get rid of the NAs
+
+
+# Specify the ARIMA model you with your choice or p, q values...(p=AR order, d=differencing, q= MA order)
+AR1 <- arima(GDPGrowth, order = c(1, 0, 0)) # fit an AR(1) model 
+AR1 # print the model 
+
+MA1 <- arima(GDPGrowth, order = c(0, 0, 1)) # fit an MA(1) model 
+MA1 # print the model 
+
+AR1MA1 <- arima(GDPGrowth, order = c(1, 0, 1)) # fit an ARMA(1,1) model 
+AR1MA1 # print the model 
+```
+
+
+

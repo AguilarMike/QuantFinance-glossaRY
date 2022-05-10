@@ -1,0 +1,49 @@
+---
+title: "Multi-Asset CAPM"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Multi-Asset CAPM -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+
+startd<-"2015-12-01"
+endd<-"2020-12-31"
+freq<-"monthly"
+tickers_code <- c("IBM","AAPL","GOOG","FB","MSFT","^GSPC","TB4WK") # GSPC=SP500; TB4WK=1mt Treasury Yield
+getSymbols(tickers_code[1:6],from = startd, to =endd, periodicity = freq, src = 'yahoo')
+getSymbols(tickers_code[7],src = 'FRED')
+library(tidyverse)
+# risk free rate
+Rf = TB4WK["2016-01-01/2020-03-31"] # annual rate
+Rf = (Rf/100+1)^(1/12)-1 # convert to month rate
+Rf = log(1+Rf) # converting to log returns
+names(Rf) = "Rf"
+# market excess return
+ExcessReturn.Market = data.frame(periodReturn(Ad(get("GSPC")),
+                                period = "monthly",type='log')[-1,]-Rf)
+# stocks' excess return
+df <- tibble(Ticker = tickers_code[1:5],
+             ExcessReturn.Stock = do.call(c,lapply(Ticker, function(x) 
+               data.frame(periodReturn(Ad(get(x)),type='log')[-1,]-Rf))),
+             ExcessReturn.Market = rep(ExcessReturn.Market,5),
+             #Date = index(Rf)
+             Date = do.call(c,lapply(Ticker, function(x) (list(index(Rf)))))
+             )
+
+library(plyr)
+# convert to long table
+df_long = df %>% unnest(colnames(df))
+#Break up df_long by Ticker, then fit the specified model to each piece and return a list
+models <- dlply(df_long, "Ticker", function(x) lm(ExcessReturn.Stock~1+ExcessReturn.Market, data = x))
+
+# Apply coef to each model and return a data frame
+coefs=ldply(models, coef)
+names(coefs) = c("Ticker","Intercept","Beta")
+print(coefs)
+```

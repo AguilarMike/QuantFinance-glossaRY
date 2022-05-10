@@ -1,0 +1,25 @@
+---
+title: "Decompose Seasonality"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Decompose Seasonality -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+ticker="FRED/TOTALNSA"
+startdate<-"1980-01-01"
+library(Quandl)
+quandl_api_key<-read.csv("../data/quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(quandl_api_key)
+VehicleNSA <- Quandl(ticker,start_date=startdate,type="ts")
+plot(VehicleNSA)
+decomp<-decompose(VehicleNSA)
+plot(decomp)
+
+
+```
+

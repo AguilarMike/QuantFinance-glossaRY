@@ -1,0 +1,191 @@
+---
+title: "Event Study "
+author: "Mike Aguilar, Ziming Huang"
+date: "4/16/2021"
+output: html_document
+---
+
+
+```{r,warning=FALSE, message=FALSE}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+# prepare library
+library(rvest) # crawl data from html
+library(Quandl)
+library(quantmod)
+library(PerformanceAnalytics)
+library(here)
+library("readxl")
+library(tidyverse)
+library(data.table)
+library(plyr)
+library(ggplot2)
+```
+
+```{r,warning=FALSE, message=FALSE}
+# fetch DOWJIA ticker list from wiki
+url <- "https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average"
+DOWJIA <- url %>%
+  xml2::read_html() %>%
+  html_nodes(xpath='//*[@id="constituents"]') %>%
+  html_table()
+
+DOWJIA <- DOWJIA[[1]]
+DOW_Tickers <- DOWJIA$Symbol
+```
+
+
+#### Load Data
+```{r,warning=FALSE, message=FALSE}
+### load data (Dow 30 Constituents)
+Tickers<-c("^GSPC",DOW_Tickers)
+Rf_Tickers<-'DTB4WK'
+
+startd = "2018-12-01"
+endd = "2021-04-15"
+
+# pull stock price from yahoo 
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+getSymbols(Rf_Tickers,src='FRED')
+### stock Return
+tickers = gsub("[[:punct:]]", "", Tickers)
+Return = do.call(merge,lapply(tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Return = Return[-1,]
+names(Return) = tickers
+
+### Rf
+DTB4WK = na.omit(DTB4WK)
+Rf = DTB4WK[paste(startd,"/",endd,sep="")] # annual rate
+Rf = (Rf/100+1)^(1/252)-1 # convert to daily date, business day
+names(Rf) = "Rf"
+
+### merge data
+Data = merge(Return,Rf)
+Data = na.omit(Data)
+
+### excess return
+NumCol = ncol(Data)
+StocksEXRet = Data[,1:NumCol-1]
+for (i in 1:ncol(StocksEXRet)){
+StocksEXRet[,i]<- StocksEXRet[,i]-Data$Rf
+}
+Rf = Data$Rf
+
+### log return
+LogStocksEXRet = log(1+StocksEXRet)
+LogRf = log(1+Rf)
+
+# print data
+head(cbind(LogStocksEXRet[,1:4],LogRf))
+```
+
+<!-- ### Event Study -->
+#### Set Event Dates
+```{r,warning=FALSE, message=FALSE}
+# set parameters
+event_date = as.Date("2020-01-06")
+event_window = 10 
+estimate_window = 250 
+postevent_window = 30
+T1 = event_date - event_window
+T2 = event_date + event_window
+T0 = T1 - estimate_window
+T3 = T2 + postevent_window
+
+### fit CAPM model
+# estimate data
+Estimate_Data = LogStocksEXRet[paste(T0,"/",T1-1,sep="")]
+
+# CAPM regression
+model<-lm(Estimate_Data[,2]~Estimate_Data[,1])
+Coeff<- data.frame(model$coefficients)
+Coeff = t(Coeff)
+
+NumCols = ncol(Estimate_Data)
+for (i in 3:NumCols){
+  model<-lm(Estimate_Data[,i]~Estimate_Data[,1])
+  coeff = data.frame(model$coefficients)
+  coeff = t(coeff)
+  coeff
+  Coeff = rbind(Coeff,coeff)
+}
+
+# save betas for all tickers
+Tickers<-DOW_Tickers
+Coeff<-data.frame(Coeff,Tickers)
+head(Coeff)
+
+### predict "normal" return
+Test_data = LogStocksEXRet[paste(T1,"/",T3,sep="")]
+Prediction = Test_data[,-1]
+for(i in 1:ncol(Prediction)){
+  Prediction[,i] = Coeff[i,1]+Coeff[i,2]*Test_data[,1]
+}
+
+### abnormal return
+AR = Test_data[,-1]
+for(i in 1:ncol(AR)){
+  AR[,i] = Test_data[,i+1]-Prediction[,i]
+}
+
+### Cumulative AR
+CAR = cumsum(AR)
+
+```
+
+#### Plot CAR
+```{r fig.width=16, fig.height=8}
+### convert to long table
+CAR_df = data.frame(CAR)
+CAR_df$Date = index(CAR)
+CAR_df=melt(setDT(CAR_df), measure.vars=list(c(1:30)), 
+     variable.name='Ticker', value.name=c("CAR"))[, 
+      Ticker:= DOW_Tickers[Ticker]][order(Date)]
+
+# average CAR
+AvgCAR <- ddply(CAR_df, "Date", summarise, Ticker = "AVERAGE",AvgCAR=mean(CAR))
+
+### plot
+
+ggplot(CAR_df, aes(x=Date, y=CAR, group=Ticker, color=Ticker)) +
+    geom_line(size=0.8,alpha=0.8)+
+    geom_line(data = AvgCAR, aes(x=Date,y=AvgCAR),size = 1.2, color = "black")+
+    geom_vline(aes(xintercept = event_date),linetype="dashed",color = "darkred",size=1.5)+
+    geom_hline(aes(yintercept = 0),linetype="dashed",color = "darkred",size=1.1)+
+    annotate(geom="text", x=event_date+10, y=0.4, label="Jan6th",fontface =2,
+           size =8,alpha = 0.8,color="darkred")+
+    scale_x_date(date_breaks = "5 days", date_labels = "%b %d")+
+    ggtitle("Cumulative Abnormal Log Excess Return")+ylab("CAR")
+```
+
+```{r,warning=FALSE, message=FALSE}
+d<-data.frame(CAR=as.numeric(t(CAR[T2])))
+d$Ticker = DOW_Tickers
+
+titletoplot = paste0("CAR ",event_window," days after Jan6th")
+ggplot(data = d,aes(x = Ticker, y=CAR,fill=Ticker))+
+  geom_bar(stat="identity",alpha=0.5)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(y="CAR",x='Ticker',title = titletoplot)
+```
+
+
+#### Summarize J Stats Across All Assets
+```{r,warning=FALSE, message=FALSE}
+### calculate J-stat
+Avg_event_CAR = rowMeans(CAR[paste(T1,"/",T2,sep="")])
+JCAR = tail(Avg_event_CAR,1)
+event_AR = AR[paste(T1,"/",T2,sep="")]
+Jsigma = sqrt(sum(sapply(event_AR,FUN=var))/30^2)
+
+Jstat = JCAR/Jsigma
+pvalues = pnorm(q=abs(Jstat),lower.tail = FALSE)*2
+
+# print result
+print(cbind(CAR = JCAR, Jstat,Pvalue = pvalues))
+```
+
+
+

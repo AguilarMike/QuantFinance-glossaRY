@@ -1,0 +1,26 @@
+---
+title: "Joint Hypothesis Test"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Joint Hypothesis Test -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+reg1<-lm(DAX~CAC+FTSE,Returns) #Run Regression
+print(summary(reg1))
+library(car)
+# Test if the coefficients are equal
+linearHypothesis(reg1,c("CAC=FTSE"))
+# Test if the coefficients take specific values jointly
+linearHypothesis(reg1,c("CAC=0","FTSE=.36"))
+
+```

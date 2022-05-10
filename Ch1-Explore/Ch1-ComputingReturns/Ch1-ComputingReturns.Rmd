@@ -1,0 +1,126 @@
+---
+title: "Computing Returns"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+<!-- ## Computing Returns -->
+
+### Compute Lag
+```{r child = 'SingleLag.Rmd'}
+```
+
+### Compute Many Lags
+```{r child = 'MultipleLags.Rmd'}
+```
+
+### Simple Daily Returns (v1)
+```{r child = 'SimpleDailyReturns.Rmd'}
+```
+
+### Simple Daily Returns (v2)
+```{r child = 'SimpleDailyReturns(V2).Rmd'}
+```
+
+
+### Simple Weekly Returns
+```{r child = 'SimpleWeeklyReturns.Rmd'}
+```
+
+### Simple Rolling Returns
+```{r child = 'SimpleRollingWeeklyReturns.Rmd'}
+```
+
+
+<!-- ### Simple Rolling Returns (v2) -->
+<!-- Use Gross Returns -->
+
+
+### Simple Total Returns
+```{r child = 'SimpleTotalReturns.Rmd'}
+```
+
+
+### Log Daily Returns (v1)
+```{r child = 'LogDailyReturns.Rmd'}
+```
+
+
+### Log Daily Returns (v2)
+My preferred approach since I can "see" what is happening. 
+```{r child = 'LogDailyReturns(V2).Rmd'}
+```
+
+
+### Currency Adjust. Ret. (v1)
+```{r child = 'CurrencyAdjustedReturns.Rmd'}
+```
+
+
+### Currency Adjust. Ret. (v2)
+```{r child = 'CurrencyAdjustedReturns(V2).Rmd'}
+```
+
+
+### Inflation Adjust. Ret. (v1)
+```{r child = 'InflationAdjustedReturns.Rmd'}
+```
+
+
+### Inflation Adjust. Ret. (v2)
+```{r child = 'InflationAdjustedReturns(V2).Rmd'}
+```
+
+
+### Annualize Simple Returns
+```{r child = 'AnnualizeSimpleReturns.Rmd'}
+```
+Note: A number like 1.18e+01 can be read as 11.8.  
+Note: A number like .01 is 1%, so 11.8 is 1,180%
+
+
+### Annualize Log Returns
+```{r child = 'AnnualizeLogReturns.Rmd'}
+```
+Note: A number like 1.18e+01 can be read as 11.8.  
+Note: A number like .01 is 1%, so 11.8 is 1,180%
+
+
+### Convert Daily to Weekly
+```{r child = 'ConvertDailytoWeeklyPrices.Rmd'}
+```
+CAUTION: The suffixes .Open,.High,.Low,.Close are NOT those respective metrics from the HLOCV dataset pulled from yahoo.  For instance, .Open is the first day of the week, whereas .High is the highest daily price during the week. 
+
+
+### Fill in Missing Dates
+```{r child = 'FillinMissingDates.Rmd'}
+```
+
+
+### Returns for Multiple Assets
+```{r child = 'ReturnsforMultipleAssets.Rmd'}
+```
+
+
+### Multi-Asset Total Returns
+```{r child = 'Multi-AssetTotalReturns.Rmd'}
+```
+
+
+### Prices-Multiple Assets (v1)
+```{r child = 'PricesforMultipleAssets.Rmd'}
+```
+
+
+### Prices-Multiple Assets (v2)
+```{r child = 'PricesforMultipleAssets(V2).Rmd'}
+```
+
+

@@ -1,0 +1,116 @@
+---
+title: "Regression"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    mode: selfcontained
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 3
+
+---
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+### Univariate Regression
+```{r child = 'UnivariateRegression.Rmd'}
+```
+
+### Multivariate Regression
+```{r child = 'MultivariateRegression.Rmd'}
+```
+
+### Regress w/Interactions
+```{r child = 'Interactions.Rmd'}
+```
+
+### Regress w/Calendar Dummy
+```{r child = 'RegressionCalendarDummy.Rmd'}
+```
+
+
+### Regression Plots
+```{r child = 'RegressionPlots.Rmd'}
+```
+
+### Regression Plots(v2)
+```{r child = 'RegressionPlotsV2.Rmd'}
+```
+
+### Extract Regress. Coef. 
+```{r child = 'ExtractRegCoefficients.Rmd'}
+```
+
+### Extract Regression Residuals
+```{r child = 'ExtractRegResiduals.Rmd'}
+```
+
+### Regression Fitted Values
+```{r child = 'ExtraRegFitted.Rmd'}
+```
+
+### Regression Predictions
+```{r child = 'RegressionPredict.Rmd'}
+```
+
+### Test Parameter Significance
+```{r child = 'TestParameters.Rmd'}
+```
+
+### Test Param. Sig. One-sided
+```{r child = 'TestParametersOneSided.Rmd'}
+```
+
+### Test Joint Hypothesis
+```{r child = 'JointHypTest.Rmd'}
+```
+
+### Test Joint Hyp. Wald
+```{r child = 'WaldTest.Rmd'}
+```
+
+### Variance Infl. Factor
+```{r child = 'VarInfFactor.Rmd'}
+```
+
+### BPTest-Heteroscedasticity
+```{r child = 'BPTest.Rmd'}
+```
+
+### White StdErr. Hetero.
+```{r child = 'WhiteStdErrors.Rmd'}
+```
+
+### Hetero.Robust T-Test
+```{r child = 'RobustTTest.Rmd'}
+```
+
+### Hetero.Robust Wald Test
+```{r child = 'HeteroRobustWaldTest.Rmd'}
+```
+
+### Test for serial correlation
+```{r child = 'DWTest.Rmd'}
+```
+
+### Test for serial correlation 2
+```{r child = 'BGTest.Rmd'}
+```
+
+### Test for serial correlation 3
+```{r child = 'LBTest.Rmd'}
+```
+
+### Fixing Serial correlation
+```{r child = 'NeweyWest.Rmd'}
+```

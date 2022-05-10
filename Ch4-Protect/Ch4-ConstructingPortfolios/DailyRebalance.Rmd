@@ -1,0 +1,35 @@
+---
+title: "Daily Rebalancing"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ## Daily Rebalancing -->
+Note: Using Return.portfolio does NOT include transaction costs, nor does it produce an Optimal portfolio.
+Can alter rebalance_on to (days,weeks,months,quarters,years).
+
+```{r, echo = TRUE}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+library(PortfolioAnalytics)
+library(PerformanceAnalytics)
+Tickers<-c('F','GE','CAT')
+startd = "2015-01-01"
+endd = "2021-04-30"
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Prices = do.call(merge,lapply(Tickers, function(x) Ad(get(x))))
+Prices = na.omit(Prices[-1,])
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+wF = .05
+wGE = .25
+wCAT = .70
+startingweights<-c(wF,wGE,wCAT)
+port1<-Return.portfolio(R=Returns, weights = startingweights, rebalance_on = "days",   verbose = TRUE)
+head(port1$BOP.Weight)
+head(port1$EOP.Weight)
+```

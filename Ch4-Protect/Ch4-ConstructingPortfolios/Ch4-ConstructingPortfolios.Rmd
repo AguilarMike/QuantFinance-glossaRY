@@ -1,0 +1,71 @@
+---
+title: "Computing Returns"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    
+---
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+<!-- ## Computing Returns -->
+### Buy&Hold Equal Weights
+```{r child = 'BHEqualStartWeights.Rmd'}
+```
+
+### Buy&Hold NonEqual Weights
+```{r child = 'BHNonEqualStartWeight.Rmd'}
+```
+
+### Buy&Hold With Shorts
+```{r child = 'BHShorts.Rmd'}
+```
+
+### Buy&Hold Fully Invested
+```{r child = 'BHFullyInvested.Rmd'}
+```
+
+### Buy&Hold Fully Invested v2
+```{r child = 'BHFullyInvestedv2.Rmd'}
+```
+
+### Compute Portfolio Value
+```{r child = 'ComputePortValue.Rmd'}
+```
+
+### Compute Portfolio Value v2
+```{r child = 'ComputePortValueV2.Rmd'}
+```
+
+### Portfolio Drawdown
+```{r child = 'PortfolioDrawdown.Rmd'}
+```
+
+### Portfolio Value/Return Drawdown
+```{r child = 'PortValRetDrawdown.Rmd'}
+```
+
+
+### Chart Evolution of Weights
+```{r child = 'ChartEvolWeights.Rmd'}
+```
+
+### Pie Chart of Weights
+```{r child = 'PieChartofWeights.Rmd'}
+```
+
+### Chart Asset Contributions
+```{r child = 'ChartAssetRetContrib.Rmd'}
+```
+
+### Regular Rebalancing
+```{r child = 'DailyRebalance.Rmd'}
+```
+
+### Irregular Rebalancing
+```{r child = 'IrregularRebal.Rmd'}
+```

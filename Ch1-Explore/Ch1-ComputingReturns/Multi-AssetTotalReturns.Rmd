@@ -1,0 +1,23 @@
+---
+title: "Multi-Asset Total Returns"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Multi-Asset Total Returns -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+Tickers<-c('F','GE','CAT')
+startd = "2015-01-01"
+endd = "2021-04-30"
+TickersReturned<-getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Prices = as.xts(data.frame(F=F$F.Adjusted,GE=GE$GE.Adjusted, CAT=CAT$CAT.Adjusted))
+colnames(Prices)<-Tickers
+Assets_begPrice=as.numeric(head(Prices,n=1))
+Assets_Total_return = tail(Prices,1)/Assets_begPrice - 1
+Assets_Total_return
+```

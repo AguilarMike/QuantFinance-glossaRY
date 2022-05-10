@@ -1,0 +1,53 @@
+---
+title: "Test for ARCH Effect"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+ARCH effect is concerned with a relationship within the heteroskedasticity, often termed serial correlation of the heteroskedasticity. 
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"2010-01-01" #We want from Jan2010 forward. 
+endd<-"2018-01-01"
+freq<-"weekly"
+trans<-"rdiff" # calculate simple return
+ticker <- "WIKI/JPM.11" # we load the JPM closed price data (the 11th column)
+
+JPM <- Quandl(ticker,transform=trans,start_date=startd, end_date=endd, collapse=freq,type="xts") # Careful here.  The `rdiff` provides the simple return.  We should convert to log returns since we are running a regression. 
+colnames(JPM )[1]="SimpleRet" # Add column name 
+JPM$LogRet<-log(1+JPM $SimpleRet)
+```
+The ARCH model assumes that the conditional mean of the error term in a time series model is constant (zero), but its conditional variance is not.
+```{r}
+### Get Residual Square
+library(dplyr)
+reg<-lm(JPM$LogRet~1) # demean the return series by regress it on constant only
+JPM$DMLogRet<-resid(reg) # get residuals, which is the de-mean value of log return
+JPM$Sq_DMLogRet<-JPM$DMLogRet^2 # let's compute the squared residuals (i.e. JPM$DMLogRet)
+acf(JPM$Sq_DMLogRet) # use the ACF to see if there appears to be persistence in the squared residuals
+
+
+### Engle's ARCH LM test
+# Engle's ARCH LM test is the most commonly applied standard test to detect autoregressive conditional heteroscedasticity. We start with the regression of squared residuals upon lagged squared residuals 
+ARCH <- lm(JPM$Sq_DMLogRet~lag.xts(JPM$Sq_DMLogRet,k=1))
+summary(ARCH)
+
+# Calculate the LM test statistic
+library(broom)
+RSq_ARCH <- glance(ARCH)[[1]] # grab the R square value of ARCH model
+L <- length(JPM$Sq_DMLogRet) # lengths for data
+q <- length(coef(ARCH))-1 # degrees of freedom q
+LM <- (L-q)*RSq_ARCH # Compute the LM stat as (L-q)*Rsquare
+LM
+
+# Calculate the critical value
+alpha <- 0.05 # set significance levels
+Critical <- qchisq(1-alpha, q) # get chi-squared stat(the arch test stat is a chi-squared)
+Critical
+# Interpret: Null hypothesis is white noise (i.e. no ARCH effects).  Test stat is greater than critical value, so we reject, implying ARCH effects exist.  
+```

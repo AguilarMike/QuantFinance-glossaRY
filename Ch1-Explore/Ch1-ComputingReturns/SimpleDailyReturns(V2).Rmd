@@ -1,0 +1,25 @@
+---
+title: "Simple Daily Returns(V2)"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+<!-- ### Simple Daily Returns (v2) -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(tidyquant)
+ticker = 'AAPL' # asset ticker
+start_date = '2017-01-01' # data start date
+end_date = '2021-02-01' # data end date
+data_src = 'yahoo' # data source
+getSymbols(ticker,from = start_date, to = end_date, src=data_src)
+price_diff = diff(x = AAPL$AAPL.Adjusted,differences = 1) # calculate one period difference
+price_diff = na.omit(price_diff) #remove NA value
+dim(price_diff) # Look at the size of price_diff
+price_t = AAPL$AAPL.Adjusted[-length(AAPL$AAPL.Adjusted)] # remove the last observation
+## calculate return via R_t = (P_t-P_{t-1})/P_{t-1}
+Return_AAPL2 = price_diff/as.numeric(price_t)
+```
+

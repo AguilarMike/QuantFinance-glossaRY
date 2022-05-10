@@ -1,0 +1,81 @@
+---
+title: "Loading & Saving Data"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    
+    
+---
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+
+
+
+<!-- ## Loading & Saving Data -->
+### Load from Yahoo Finance API
+```{r child = 'LoadfromyahoofinanceAPI.Rmd'}
+```
+
+### Batch Load Yahoo Finance
+```{r child = 'LoadfromyahoofinanceAPIBATCH.Rmd'}
+```
+
+### Load Tickers from EXCEL
+```{r child = 'PastingTickerList.Rmd'}
+```
+
+### Load from quandl/NASDAQ
+```{r child = 'LoadfromquandlNASDAQ.Rmd'}
+```
+
+
+### Load from FRED
+```{r child = 'LoadfromFRED.Rmd'}
+```
+
+
+### Loading from CSV
+```{r child = 'LoadfromCSV.Rmd'}
+```
+
+
+### Loading from TXT
+```{r child = 'LoadfromTXT.Rmd'}
+```
+
+### Load from XLS
+```{r child = 'LoadfromXLS.Rmd'}
+```
+
+### Save Data 
+```{r child = 'SaveData.Rmd'}
+```
+
+### Load SP500 Tickers 
+```{r child = 'SP500Tickers.Rmd'}
+```
+
+### Load DJIA Tickers 
+```{r child = 'DJIA30Tickers.Rmd'}
+```
+
+### Load Fama-French 3 Factors
+```{r child = 'DownloadFF3.Rmd'}
+```
+
+### Load Fama-French 5 Factors
+```{r child = 'DownloadFF5.Rmd'}
+```
+
+### Load French 49 Industries
+```{r child = 'DownloadFrench49Ind.Rmd'}
+```
+
+### Load US Recession Dates
+```{r child = 'RecessionDates.Rmd'}
+```

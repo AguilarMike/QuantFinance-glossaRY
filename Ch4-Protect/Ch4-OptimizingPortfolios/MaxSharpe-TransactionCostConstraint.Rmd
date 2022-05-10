@@ -1,0 +1,86 @@
+---
+title: "Max Sharpe - Transaction Cost Constraint"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+```{r}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+### Load Data
+library(quantmod)
+startd = "2015-01-01"
+endd = "2021-04-30"
+Tickers = c("IBM","GE","F","MSFT")
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+### Compute Returns
+Return = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Return = na.omit(Return[-1,])
+colnames(Return)<-Tickers
+
+
+### Construct Portfolio
+# Create the portfolio specification
+library(PortfolioAnalytics)
+init.portf <-portfolio.spec(assets = colnames(Return))
+
+# Relax the leverage constraint(min_sum = max_sum = 1, by default)
+init.portf <- add.constraint(portfolio=init.portf, type="leverage", 
+                             min_sum = 0.99, max_sum = 1.01)
+
+# Simplify the optimization problem by setting long only constraint
+init.portf <- add.constraint(portfolio=init.portf, type="long_only")
+
+
+# Add a transaction cost constraint: the transaction cost constraint allows the user to specify proportional transaction costs. Transaction costs are supported as a penalty for the global numeric solvers. Here we add the transaction cost constraint with the proportional transaction cost value of 0.1%
+init.portf <- add.constraint(portfolio=init.portf, type="transaction_cost", ptc=0.001)
+
+
+# Add risk and return objective(we need them to calculate the Sharpe ratio)
+init.portf <- add.objective(portfolio=init.portf, type="return", name = "mean")
+init.portf <- add.objective(portfolio=init.portf, type="risk", name = "StdDev")
+
+### Solve Portfolio: Maximize Sharpe Ratio
+# The default action if “mean” and “StdDev” are specified as objectives with optimize_method="ROI" is to maximize quadratic utility. 
+# Note that with the ROI solvers, proportional transaction cost constraint is currently only supported for the global minimum variance and quadratic utility problems with ROI quadprog plugin
+library(DEoptim)
+opt.MaxSR <- optimize.portfolio(R=Return, 
+                                portfolio=init.portf, 
+                                maxSR=TRUE,
+                                trace=TRUE)
+
+summary(opt.MaxSR) # The optimization summary should be read carefully since not every constraint is guaranteed to be satisfied
+
+### Visualize result
+library(PerformanceAnalytics)
+# Optimal weights
+OptWeight = extractWeights(opt.MaxSR)
+chart.Weights(opt.MaxSR)
+
+# Sharpe ratio
+SharpeRatio(Return, weights = OptWeight, FUN = "StdDev")
+
+# Portfolio returns
+PortReturn <- Return.portfolio(R = Return, 
+                              weights = OptWeight, 
+                              geometric = FALSE) #use arithmetic(FALSE) to aggregate returns
+chart.TimeSeries(PortReturn)
+```
+
+
+

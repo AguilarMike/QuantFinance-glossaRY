@@ -1,0 +1,98 @@
+---
+title: "Max Sharpe - Factor Exposure Constraint"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+
+```{r}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+
+### Load Data
+library(quantmod)
+startd = "2015-01-01"
+endd = "2021-04-30"
+Tickers = c("IBM","GE","F","MSFT")
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+### Compute Returns
+Return = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Return = na.omit(Return[-1,])
+colnames(Return)<-Tickers
+
+
+### Estimate Market Risk Exposure(assume Rf = 0)
+# Load market data(we need this because we want it to calculate the market risk exposure)
+getSymbols("^GSPC", from = startd, to = endd)
+SP500 <- periodReturn(Ad(get("GSPC")),period='daily',type='arithmetic') 
+na.omit(SP500)
+SP500 <- SP500[-1,] # remove the first row
+names(SP500) <- "SP500" 
+Betas <- sapply(colnames(Return), function(x) lm(Return[,x]~1+SP500)$coef[2]) #First regression
+MktExposure <- lm(colMeans(Return)~1+Betas)$coef[2] #Second regression
+```
+
+```{r}
+### Construct Portfolio
+# Create the portfolio specification
+library(PortfolioAnalytics)
+init.portf <-portfolio.spec(assets = colnames(Return))
+
+
+# Add a factor exposure constraint: the factor exposure constraint allows the user to set upper and lower bounds on exposures to risk factors. The exposures can be passed in as a vector or matrix. Here we specify a vector for B with arbitrary values, e.g. betas of the assets, with a market risk exposure range from "lower" to "upper" of the estimated value
+init.portf <- add.constraint(portfolio=init.portf, 
+                             type="factor_exposure",
+                             B = scale(Betas),
+                             lower=MktExposure*0.2, 
+                             upper=MktExposure*0.8)
+
+# Add risk and return objective(we need them to calculate the Sharpe ratio)
+init.portf <- add.objective(portfolio=init.portf, type="return", name = "mean")
+init.portf <- add.objective(portfolio=init.portf, type="risk", name = "StdDev")
+```
+
+
+```{r}
+### Solve Portfolio: Maximize Sharpe Ratio
+# The default action if “mean” and “StdDev” are specified as objectives with optimize_method="ROI" is to maximize quadratic utility. If we want to maximize Sharpe Ratio, we need to pass in maxSR=TRUE to optimize.portfolio
+library(ROI)
+opt.MaxSR <- optimize.portfolio(R=Return, 
+                                portfolio=init.portf, 
+                                optimize_method="ROI", 
+                                maxSR=TRUE,
+                                trace=TRUE)
+# Warning: Inf or -Inf values detected in box constraints, maximum return objectives must have finite box constraint values. 
+
+
+summary(opt.MaxSR) # The optimization summary should be read carefully since not every constraint is guaranteed to be satisfied
+```
+
+
+```{r}
+### Visualize result
+library(PerformanceAnalytics)
+# Optimal weights
+OptWeight = extractWeights(opt.MaxSR)
+chart.Weights(opt.MaxSR)
+
+# Sharpe ratio
+SharpeRatio(Return, weights = OptWeight, FUN = "StdDev")
+
+# Portfolio returns
+PortReturn <- Return.portfolio(R = Return, 
+                              weights = OptWeight, 
+                              geometric = FALSE) #use arithmetic(FALSE) to aggregate returns
+chart.TimeSeries(PortReturn)
+```
+
+
+

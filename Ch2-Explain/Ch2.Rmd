@@ -1,0 +1,47 @@
+---
+title: "Chapter 2 Explain"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    mode: selfcontained
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 3
+
+---
+<!-- limit output height -->
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=4,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+<!-- # Seasonality & Smoothing -->
+## Seasonality & Smoothing
+```{r child = 'Ch2-Seasonality/Ch2-Seasonality.Rmd'}
+```
+
+
+## Regression
+```{r child = 'Ch2-Regression/Ch2-Regression.Rmd'}
+```
+
+## Equilibrium Pricing Models
+```{r child = 'Ch2-ClassicalModels/Ch2-ClassicalModels.Rmd'}
+```
+
+
+## Time Series Models
+```{r child = 'Ch2-TimeSeriesModels/Ch2-TimeSeriesModels.Rmd'}
+```
+
+## Classification
+```{r child = 'Ch2-Classification/Ch2-Classification.Rmd'}
+```

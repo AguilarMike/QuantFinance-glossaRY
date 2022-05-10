@@ -1,0 +1,24 @@
+---
+title: "Extract Regression Residuals"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Extract Regression Residuals -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+reg1<-lm(DAX~CAC,Returns) #Run Regression
+Errors<-resid(reg1)
+plot(Errors)
+#or
+Errors2<-Returns$DAX-reg1$fitted.values
+head(cbind(Errors,Errors2))
+```

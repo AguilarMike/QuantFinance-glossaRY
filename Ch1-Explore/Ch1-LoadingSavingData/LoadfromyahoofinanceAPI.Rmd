@@ -1,0 +1,38 @@
+---
+title: "Load from yahoo finance API"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+<!-- ### Load from yahoo finance API -->
+#### Load over Fixed Time Span
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+startd = "2015-01-01"
+endd = "2016-01-01"
+Ticker = "AAPL"
+getSymbols(Ticker,from=startd,to=endd,src='yahoo')
+```
+
+#### Load Until Most Recent
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+startd = "2015-01-01"
+Ticker = "AAPL"
+getSymbols(Ticker,from=startd,src='yahoo')
+```
+
+#### Load Multiple Tickers 
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+startd = "2015-01-01"
+Tickers = c("AAPL","IBM","GE")
+getSymbols(Tickers,from=startd,src='yahoo')
+```

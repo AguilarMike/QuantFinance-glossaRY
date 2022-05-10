@@ -1,0 +1,31 @@
+---
+title: "Model Comparison"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-01-01"
+freq<-"quarterly"
+GDP <- Quandl("FRED/GDPC1", type="xts",start_date=startd, end_date=endd)
+GDPGrowth <- diff(log(GDP)) # calculate log growth rate
+GDPGrowth <- na.omit(GDPGrowth) # get rid of the NAs
+```
+
+```{r}
+library(forecast)
+Model1<-Arima(GDPGrowth, order = c(1, 0, 0)) # fit an AR(1) model 
+Model1
+
+Model2<-Arima(GDPGrowth, order = c(0, 0, 3)) # fit an MA(3) model 
+Model2
+```
+Notice that the AIC of Model2 is -844.78, which is smaller than then Model1's AIC -845.54, Model2 is better or with higher predict accuracy than Model1. 

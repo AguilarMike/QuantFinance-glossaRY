@@ -1,0 +1,84 @@
+---
+title: "NNETAR One-Step Ahead"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+```{r}
+### Housekeeping
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+
+
+### Load data
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd<-"1990-01-01"
+endd<-"2018-12-31"
+freq<-"quarterly"
+GDP <- Quandl("FRED/GDPC1", type="ts",start_date=startd, end_date=endd)
+GDPGrowth <- diff(log(GDP)) # calculate log growth rate
+GDPGrowth <- na.omit(GDPGrowth) # get rid of the NAs
+
+# Split data
+Train <- window(GDPGrowth,  end = 2014.9999)
+Test <- window(GDPGrowth,  start = 2015)
+```
+
+
+```{r}
+### One-Step Ahead Forecasts with NNETAR model
+library(forecast)
+set.seed(123)
+fit <- nnetar(Train) 
+fit
+
+NNETARForecast <- forecast(fit, h = 1, PI=FALSE) # h is the forecast period number; set PI = TRUE to calculate the prediction intervals(take some time)
+data.frame(PointForecast=NNETARForecast$mean, row.names=as.yearqtr(index(Test)[1]))
+```
+
+The above command will only give you the first one-step-ahead forecast, if you want to forecast for all out-of-sample period you can refit the model with testing data:
+```{r}
+### Make Forecasts Over The Whole Test Set 
+fit.out <- nnetar(Test, model = fit) # Note that the length of the test data must be greater than the data frequency (4) or the maximum order of NNETAR (14), whichever is greater
+NNETARForecast.out <- fitted(fit.out)
+data.frame(OneStepForecast=NNETARForecast.out, row.names=as.yearqtr(index(Test))) 
+
+# Note that you can't get the first few (14) fitted values that way because the second call to nnetar knows nothing about the earlier data. This problem can be solved by refitting the model with training and testing data together:
+fit.out2 <- nnetar(GDPGrowth, model = fit)
+NNETARForecast.out2 <- subset(fitted(fit.out2), start=length(Train)+1)  
+data.frame(OneStepForecast=NNETARForecast.out2, row.names=as.yearqtr(index(Test))) 
+```
+
+
+```{r}
+### Plot Forecasts
+library(ggplot2)
+CutDate <- tsp(Test)[1] #test sample start time
+autoplot(GDPGrowth, series = "GDP Growth Rate", lwd = 1) + 
+  autolayer(NNETARForecast.out2, series="NNETAR",lwd = 1) +
+  geom_vline(xintercept = CutDate, lwd = 1,color = "blue") +
+  annotate("text", x = CutDate - 1/2, y = 0.017,srt=90, label = "training") +
+  scale_color_manual(values = c("green","black")) +
+  ylab("") + xlab("") + ggtitle("One-Step Ahead Forecast with NNETAR Model")
+
+
+### MSE 
+MSE <- rbind("NNETAR" = c(mean((GDPGrowth - fit$fitted)**2,na.rm = T),
+                          mean((GDPGrowth - NNETARForecast.out2)**2, na.rm = T)))
+colnames(MSE) <- c("In-sample MSE", "Out-of-sample MSE")
+print(MSE)
+```

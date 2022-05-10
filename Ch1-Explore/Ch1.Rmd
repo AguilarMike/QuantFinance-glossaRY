@@ -1,0 +1,57 @@
+---
+title: "Chapter 1 Explore"
+author: "Mike Aguilar"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: no
+    toc_depth: 3
+
+---
+<!-- limit output height -->
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10, fig.height=4,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+<!-- # Explore -->
+
+## Housekeeping
+Standard lines to put at the top of all R scripts
+```{r,echo=TRUE}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+#graphics.off() # clear all plots
+```
+
+Standard lines to put at the top of all RMD files
+```{r, include=TRUE}
+knitr::opts_chunk$set(fig.width=10, fig.height=4,echo=TRUE, warning=FALSE, message=FALSE)
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+#graphics.off() # clear all plots
+```
+
+## Loading & Saving Data
+```{r child = 'Ch1-LoadingSavingData/Ch1-LoadingSavingData.Rmd'}
+```
+
+## Plotting Prices
+```{r child = 'Ch1-PlottingPrice/Ch1-PlottingPrice.Rmd'}
+```
+
+## Computing Returns
+```{r child = 'Ch1-ComputingReturns/Ch1-ComputingReturns.Rmd'}
+```
+
+## Describing Returns
+```{r child = 'Ch1-DescribingReturns/Ch1-DescribingReturns.Rmd'}
+```

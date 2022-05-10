@@ -1,0 +1,37 @@
+---
+title: "Irregular Rebalancing"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ## Irregular Rebalancing -->
+You can control the precise date of rebalancing by defining a weight matrix that contains the weights for each period on every ticker. 
+```{r, echo = TRUE}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+library(PortfolioAnalytics)
+Tickers<-c('F','GE','CAT')
+startd = "2015-01-01"
+endd = "2021-04-30"
+getSymbols(Tickers,from=startd,to=endd,src='yahoo')
+Prices = do.call(merge,lapply(Tickers, function(x) Ad(get(x))))
+Prices = na.omit(Prices[-1,])
+Returns = do.call(merge,lapply(Tickers, function(x) 
+        periodReturn(Ad(get(x)),period='daily',type='arithmetic')))
+Returns = na.omit(Returns[-1,])
+colnames(Returns)<-names(Prices)
+weightmatrix<-Returns #stealing the data type and dates
+T = dim(weightmatrix)[1] #Number of days
+wF = .05
+wGE = .25
+wCAT = .70
+weightmatrix$F.Adjusted<-rep(wF,T)
+weightmatrix$GE.Adjusted<-rep(wGE,T)
+weightmatrix$CAT.Adjusted<-rep(wCAT,T)
+port1<-Return.portfolio(R=Returns, weights = weightmatrix, verbose = TRUE)
+head(port1$BOP.Weight)
+```
+

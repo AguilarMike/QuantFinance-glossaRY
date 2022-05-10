@@ -1,0 +1,36 @@
+---
+title: "Newey West Std Errors"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+
+<!-- ### Newey West Std Errors -->
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(PortfolioAnalytics)
+data("EuStockMarkets")
+Prices<-as.data.frame(EuStockMarkets)
+T = dim(Prices)[1]
+Returns<-log(Prices[2:T,]/Prices[1:T-1,])
+reg1<-lm(DAX~CAC+FTSE,Returns) #Run Regression
+reg1summary<-summary(reg1)
+#Here, we will  use newey west robust errors. The pre-whitening and adjust are set to F, and T respectively  to ensure the proper formula and small sample adjustments are made. 
+  #https://www.econometrics-with-r.org/15-4-hac-standard-errors.html
+library(sandwich)
+#NW_VCOV_msft <- NeweyWest(lm(as.numeric(msftXS)~as.numeric(spyXS)), prewhite = F, adjust = T)
+NW_VCOV <- NeweyWest(reg1, prewhite = F, adjust = T)
+
+#compute standard errors 
+hac_err_CAC=sqrt(diag(NW_VCOV))[2] # the [2] is to retrieve the second element, which corresponds to the "independent" variable. 
+#Compare the standard Errors
+cbind(reg1summary$coefficients[2,2],hac_err_CAC)
+#Compute new t-stat
+newCACt=(reg1$coefficients['CAC']-0)/hac_err_CAC
+#Compare the t-stats
+cbind(reg1summary$coefficients[2,3],newCACt)
+
+
+```

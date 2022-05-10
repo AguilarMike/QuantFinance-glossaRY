@@ -1,0 +1,26 @@
+---
+title: "Save Data"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+<!-- ### Save Data  -->
+#### Save to CSV
+This assumes that you have a folder called "data" in the directory where your code file is located. 
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+mydata<-read.csv("../data/AAPL.csv")
+write.csv(mydata, "../data/AAPL_data.csv",row.names = TRUE)
+```
+#### Save to XLS
+This assumes that you have a folder called "data" in the directory where your code file is located. 
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(writexl)
+library(readxl)
+mydata <- read_excel("../data/AAPL.xlsx") 
+write_xlsx(mydata, '../data/SaveAPPLData.xlsx')
+```

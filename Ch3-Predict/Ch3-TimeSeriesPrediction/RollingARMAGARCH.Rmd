@@ -1,0 +1,95 @@
+---
+title: "Rolling ARMA-GARCH"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+```{css, echo=FALSE}
+.scroll-200 {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: inherit;
+}
+```
+
+
+```{r, include=TRUE, echo = FALSE}
+knitr::opts_chunk$set(fig.width=10,echo=TRUE, warning=FALSE, message=FALSE, class.output="scroll-200")
+```
+
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(quantmod)
+
+startd <-"2012-01-01"  
+endd <-"2015-12-31"
+ticker <- "^GSPC"
+Prices <- Ad(getSymbols(ticker, from = startd, to = endd, auto.assign = FALSE)) # get the adjusted closed price
+Returns <- diff(log(Prices)) # get daily log-return
+Returns <- na.omit(Returns)
+names(Returns)<-"Actual Return"
+
+# Split data
+Train <- Returns["/2014"] 
+Test <- Returns["2015/"]
+```
+
+```{r}
+### Specify Model: ARMA(1,1)-GARCH(1,1)
+library(rugarch)
+spec <- ugarchspec(variance.model=list(model="sGARCH", garchOrder=c(1,1)),
+                   mean.model=list(armaOrder=c(1,1)), 
+                   distribution.model="norm")
+
+# Estimate coefficients
+fit <- ugarchfit(spec = spec, data = Returns, out.sample = length(Test)) # note that out-of-sample data is excluded by indicating out.sample = length(Test)
+coef(fit)
+```
+
+
+```{r}
+### Make Rolling 1-day ahead Forecast with ARMA(1,1)-GARCH(1,1) (Refitted the Model for Every 22 Steps). Continue for length(Test)=251 periods
+RollForecast <- ugarchroll(spec, data = Returns, n.ahead = 1, forecast.length = length(Test), refit.every = 22, refit.window = "moving") 
+
+# Forecast for returns
+RollForecast_Returns <- xts(RollForecast@forecast$density$Mu, index(Test))
+data.frame(RollForecast_Returns)
+
+# Forecast for volatility(sigma)
+RollForecast_Volatility <- xts(RollForecast@forecast$density$Sigma, index(Test))
+data.frame(RollForecast_Volatility)
+```
+
+
+```{r}
+### Plot Forecasts
+# Returns
+PlotReturns = cbind(RollForecast_Returns, Returns)
+colnames(PlotReturns) <- c("Forecast", "Actual")
+
+{plot(PlotReturns, col = c("red","black"), lwd = 2, ylab = "Returns",
+     main = "Rolling One-Step Ahead Forecast with ARMA(1,1)-GARCH(1,1) Model", legend.loc = "topleft")
+addEventLines(xts("training", index(Test)[1]), srt=90, pos=2, lwd = 2, col = "blue") }
+
+
+
+# Volatility
+PlotVolatility = cbind(RollForecast_Volatility, sigma(fit))
+PlotVolatility = sqrt(252)*PlotVolatility
+colnames(PlotVolatility) <- c("Forecast", "ModelFitted")
+
+{plot(PlotVolatility*100, col = c("red","black"), lwd = 2, ylab = "Annual Volatility(%)",
+     main = "Rolling One-Step Ahead Forecast with ARMA(1,1)-GARCH(1,1) Model", legend.loc = "topleft")
+addEventLines(xts("training", index(Test)[1]), srt=90, pos=2, lwd = 2, col = "blue") }
+
+
+
+
+### MSE
+MSE <- rbind("ARMA(1,1)-GARCH(1,1) Rolling" = c(mean((Returns - fitted(fit))**2,na.rm = T),
+                              mean((Returns - RollForecast_Returns)**2, na.rm = T)))
+colnames(MSE) <- c("In-sample MSE", "Out-of-sample MSE")
+print(MSE)
+```

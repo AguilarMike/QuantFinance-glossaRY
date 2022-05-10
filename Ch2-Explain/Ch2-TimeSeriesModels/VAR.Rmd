@@ -1,0 +1,69 @@
+---
+title: "VAR"
+author: "Mike Aguilar"
+date: "3/30/2022"
+output: html_document
+---
+
+The vector auto-regression (VAR) model extends the idea of uni-variate auto-regression to k time series regressions, where the lagged values of all k series appear as regressors. One the one hand, economic elements like GDP, investment and consumer spending, all depends upon interest rates. One the other hand, the level of interest rates is also set, in part, by the prospects for economic growth and inflation. Hence, we need a VAR model.
+```{r}
+rm(list=ls()) # clear workspace
+cat("\014")  # clear console
+library(Quandl)
+Quandl_key = read.csv("quandlkey.csv",stringsAsFactors=FALSE)$Key
+Quandl.api_key(Quandl_key)
+startd <-"1980-04-01"  
+endd <-"2012-12-31"
+
+TB3MS <- Quandl("FRED/TB3MS",start_date=startd, end_date=endd,type="ts")
+TB10YS <- Quandl("FRED/GS10",start_date=startd, end_date=endd,type="ts")
+GDP <- Quandl("FRED/GDPC96",start_date=startd, end_date=endd,type="ts", transform="rdiff")# note this is simple return, we need log return since we want to run regression
+
+TSpread <- TB10YS - TB3MS 
+TSpread <- aggregate(TSpread,nfrequency=4,FUN=mean)# aggregate monthly data to quarterly(averages)
+GDPGrowth = 400*log(1+GDP)# annual log growth rate%
+
+# Visual inspection
+plot(cbind(GDPGrowth, TSpread),xlab = "Date", main='RGDP growth and Term spread')
+```
+
+
+```{r}
+library(vars)
+### Step 1: Model selection (use information criteria to decide upon the number of lags to include)
+VAR_Data<-na.omit(ts.union(GDPGrowth, TSpread)) #set up data for estimation
+VARselect(VAR_Data, lag.max = 12, type = "const")$selection #obtain the best lag period
+# Interpret: All the information criteria suggest using lags = 2 --> we need to set p=2 when estimating the model
+
+
+### Step 2: Estimate VAR model
+VAR_fit<-VAR(y = VAR_Data, p = 2)
+summary(VAR_fit)
+```
+
+Our estimate functions are:
+
+
+\begin{align} 
+GDPgrowth_t &= c_1 + \alpha_{11}GDPGrowth_{t-1} + \alpha_{12}TSpread_{t-1} + \alpha_{13}GDPGrowth_{t-2} + \alpha_{14}TSpread_{t-2}  ~~~(1)\\
+TSpread_t &= c_2 + \alpha_{21}GDPGrowth_{t-1} + \alpha_{22}TSpread_{t-1} + \alpha_{23}GDPGrowth_{t-2} + \alpha_{24}TSpread_{t-2}  ~~~(2)
+\end{align} 
+
+In this first equation, the a11 coefficient = 0.295 implies that for every one unit increase in the last quarter GDP growth rate, GDP this quarter will rise by .295, holding constant the dynamic effects of prior GDP growth and the Term Spread. Meanwhile, the a12 coefficient = -0.875 implies that every one unit increase in the last quarter Term Spread will cause GDP growth this quarter to fall by .875 units.
+
+Now Let’s look at the second equation. a21 = 0.009 implies that for every one unit increase in the last quarter GDP growth rate, Term Spread this quarter will rise by .009. Likewise, the a22 = 1.058 implies that a unit increase in the last quarter Term Spread will cause Term Spread this quarter to rise by 1.058 units.
+
+However, since each coefficient in the VAR model only reflects a partial dynamic relationship and cannot capture a comprehensive dynamic relationship, we may need other tools such as Granger causality test, IRF impulse response function to help us understand the relationships.
+
+```{r}
+# Obtain the adj. R^2 from the output of 'VAR()'
+summary(VAR_fit$varresult$GDPGrowth)$adj.r.squared
+summary(VAR_fit$varresult$TSpread)$adj.r.squared
+
+# Multi-step forecast
+predictions <- predict(VAR_fit,n.ahead = 15, ci = 0.95)
+predictions
+
+plot(predictions, names = "GDPGrowth")
+plot(predictions, names = "TSpread")
+```
